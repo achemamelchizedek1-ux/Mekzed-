@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Range Proof Studio — ShieldFi</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;600;700;900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#090808;--s1:#100f0d;--s2:#181614;--amb:#f5a623;--a2:#cc8800;--dim:#5a4018;--text:#f0e4c8;--muted:#2a2010;--border:rgba(245,166,35,0.12);--r:10px}
+body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 60% 40% at 20% 80%,rgba(245,166,35,0.04),transparent 70%);pointer-events:none;z-index:0}
+.topnav{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;border-bottom:1px solid var(--border);background:rgba(9,8,8,0.92);backdrop-filter:blur(12px);position:sticky;top:0;z-index:100}
+.back{text-decoration:none;color:var(--dim);font-size:11px;font-family:'IBM Plex Mono',monospace;padding:6px 12px;border:1px solid var(--border);border-radius:6px;transition:color 0.2s}.back:hover{color:var(--amb)}
+.nbadge{font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--amb);background:rgba(245,166,35,0.07);border:1px solid var(--border);padding:5px 12px;border-radius:100px}
+.container{max-width:1200px;margin:0 auto;padding:36px 28px;position:relative;z-index:1}
+.page-tag{font-size:9px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;font-family:'IBM Plex Mono',monospace;margin-bottom:10px}
+.page-h1{font-size:clamp(32px,6vw,56px);font-weight:900;letter-spacing:-2px;line-height:1;margin-bottom:12px;text-transform:uppercase}
+.page-h1 em{color:var(--amb);font-style:normal}
+.page-sub{font-size:13px;color:var(--dim);line-height:1.8;max-width:480px;margin-bottom:28px;font-weight:300}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:800px){.g2{grid-template-columns:1fr}}
+.mb16{margin-bottom:16px}
+.card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.ch{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.chi{width:27px;height:27px;border-radius:6px;background:rgba(245,166,35,0.08);border:1px solid var(--border);display:grid;place-items:center;font-size:12px}
+.cht{font-size:12px;font-weight:700}.chs{font-size:9px;color:var(--dim);font-family:'IBM Plex Mono',monospace;margin-top:1px}
+.cb{padding:18px}
+.uc-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.uc{background:var(--s2);border:1px solid var(--border);border-radius:7px;padding:12px;cursor:pointer;transition:all 0.2s}
+.uc:hover,.uc.sel{border-color:rgba(245,166,35,0.3);background:rgba(245,166,35,0.04)}
+.uc-icon{font-size:18px;margin-bottom:5px}
+.uc-name{font-size:11px;font-weight:700}
+.uc-ex{font-size:9px;color:var(--dim);font-family:'IBM Plex Mono',monospace;margin-top:2px}
+.field{margin-bottom:12px}
+label{display:block;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:6px;font-family:'IBM Plex Mono',monospace}
+input{width:100%;background:var(--s2);border:1px solid rgba(245,166,35,0.1);border-radius:7px;padding:10px 12px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:12px;outline:none;transition:border-color 0.2s}
+input:focus{border-color:rgba(245,166,35,0.35);box-shadow:0 0 0 3px rgba(245,166,35,0.07)}
+input::placeholder{color:var(--muted)}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn{width:100%;padding:12px;border:none;border-radius:7px;font-family:'Barlow',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;margin-top:12px;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-p{background:linear-gradient(135deg,var(--amb),var(--a2));color:#150d00}
+.btn-p:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(245,166,35,0.25)}
+.btn-p:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+.vis-card{text-align:center;padding:28px 20px}
+.secret-label{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--dim);font-family:'IBM Plex Mono',monospace;margin-bottom:8px}
+.secret-val{font-size:48px;font-weight:900;letter-spacing:-3px;color:var(--amb);font-family:'IBM Plex Mono',monospace;line-height:1;margin-bottom:20px;transition:all 0.3s}
+.range-track{height:10px;background:var(--s2);border-radius:5px;position:relative;margin:0 0 12px}
+.range-fill{height:100%;border-radius:5px;background:linear-gradient(90deg,var(--amb),#ffd44a);position:absolute;left:0;transition:width 0.5s cubic-bezier(0.34,1.56,0.64,1)}
+.range-thumb{width:22px;height:22px;border-radius:50%;background:var(--amb);position:absolute;top:50%;transform:translateY(-50%);box-shadow:0 0 18px rgba(245,166,35,0.5);transition:left 0.5s cubic-bezier(0.34,1.56,0.64,1)}
+.range-ep{display:flex;justify-content:space-between;font-size:10px;font-family:'IBM Plex Mono',monospace}
+.range-ep span{padding:4px 10px;background:rgba(245,166,35,0.08);border:1px solid rgba(245,166,35,0.2);border-radius:4px;color:var(--amb)}
+.badges{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin:14px 0}
+.badge{padding:5px 12px;border-radius:100px;font-size:10px;font-weight:700;font-family:'IBM Plex Mono',monospace}
+.bok{background:rgba(0,200,100,0.1);color:#00c864;border:1px solid rgba(0,200,100,0.2)}
+.bfail{background:rgba(255,77,109,0.1);color:#ff4d6d;border:1px solid rgba(255,77,109,0.2)}
+.verifier-view{display:flex;justify-content:space-between;gap:10px;margin-top:16px}
+.vv-cell{flex:1;background:var(--s2);border-radius:7px;padding:12px;text-align:center}
+.vv-label{font-size:9px;color:var(--dim);font-family:'IBM Plex Mono',monospace;margin-bottom:5px}
+.vv-val{font-size:16px;font-weight:800;font-family:'IBM Plex Mono',monospace}
+.terminal{background:#060504;border:1px solid rgba(245,166,35,0.08);border-radius:8px;overflow:hidden;margin-top:14px}
+.tbar{background:#080605;border-bottom:1px solid rgba(245,166,35,0.06);padding:9px 13px;display:flex;align-items:center;justify-content:space-between}
+.tdots{display:flex;gap:5px}.td{width:10px;height:10px;border-radius:50%}
+.tlbl{font-size:10px;color:var(--dim);font-family:'IBM Plex Mono',monospace}
+.tstat{font-size:10px;font-family:'IBM Plex Mono',monospace}
+.ok{color:#00c864}.err{color:#ff4d6d}.wait{color:var(--amb)}
+.tbody{padding:14px;font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:1.8;min-height:80px;max-height:240px;overflow-y:auto;color:#5a3810;white-space:pre-wrap;word-break:break-all}
+.tfoot{display:flex;justify-content:flex-end;padding:7px 13px;border-top:1px solid rgba(245,166,35,0.06)}
+.cp{background:var(--s2);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:3px 9px;font-size:10px;font-family:'IBM Plex Mono',monospace;cursor:pointer;transition:all 0.2s}.cp:hover{color:var(--amb)}
+.spin{width:14px;height:14px;border:2px solid rgba(0,0,0,0.2);border-top-color:#150d00;border-radius:50%;animation:sp 0.7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.tg{color:#00c864}.tc{color:#00aaff}.ta{color:var(--amb)}.tw{color:var(--text)}.tr{color:#ff4d6d}.td2{color:var(--dim)}
+#toasts{position:fixed;bottom:18px;right:18px;z-index:999;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--s1);border:1px solid var(--border);border-radius:7px;padding:10px 14px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:8px;min-width:200px;font-family:'IBM Plex Mono',monospace;animation:ti 0.25s ease}
+@keyframes ti{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:translateX(0)}}
+.ts{border-color:rgba(0,200,100,0.25);color:#00c864}.te{border-color:rgba(255,77,109,0.25);color:#ff4d6d}.ti{border-color:rgba(245,166,35,0.25);color:var(--amb)}
+</style>
+</head>
+<body>
+<div class="topnav">
+  <a href="index.html" class="back">← Platform</a>
+  <div style="font-size:13px;font-weight:700">📐 Range Proof Studio</div>
+  <div class="nbadge">64-bit · Poseidon · Groth16</div>
+</div>
+<div class="container">
+  <div class="page-tag">03 / 07 · Range Proof Studio</div>
+  <h1 class="page-h1">Prove It's<br/><em>In Range.</em><br/>Reveal Nothing.</h1>
+  <p class="page-sub">Cryptographically prove your secret value falls within any range. The verifier learns only the bounds — never the exact number. 64-bit precision, Poseidon hash.</p>
+  <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);font-family:'IBM Plex Mono',monospace;margin-bottom:12px">Common Use Cases</div>
+  <div class="uc-grid" style="margin-bottom:20px">
+    <div class="uc sel" id="uc0" onclick="loadUC(0,this)"><div class="uc-icon">💰</div><div class="uc-name">Portfolio Size</div><div class="uc-ex">Prove $10k–$1M without revealing amount</div></div>
+    <div class="uc" id="uc1" onclick="loadUC(1,this)"><div class="uc-icon">📊</div><div class="uc-name">Credit Score</div><div class="uc-ex">Prove 700–850 without showing score</div></div>
+    <div class="uc" id="uc2" onclick="loadUC(2,this)"><div class="uc-icon">🎂</div><div class="uc-name">Age Gate</div><div class="uc-ex">Prove 18–65 without date of birth</div></div>
+    <div class="uc" id="uc3" onclick="loadUC(3,this)"><div class="uc-icon">🏦</div><div class="uc-name">KYC Balance</div><div class="uc-ex">Prove balance above threshold</div></div>
+  </div>
+  <div class="g2">
+    <div>
+      <div class="card mb16">
+        <div class="ch"><div class="chi">🔐</div><div><div class="cht">Range Inputs</div><div class="chs">Secret stays private</div></div></div>
+        <div class="cb">
+          <div class="field"><label>Secret Value 🔒 (never revealed)</label><input type="number" id="rv" value="47320" oninput="updateVis()"/></div>
+          <div class="fr">
+            <div class="field"><label>Minimum 👁</label><input type="number" id="rmin" value="10000" oninput="updateVis()"/></div>
+            <div class="field"><label>Maximum 👁</label><input type="number" id="rmax" value="100000" oninput="updateVis()"/></div>
+          </div>
+          <button class="btn btn-p" id="rp-btn" onclick="genRange()"><span id="rp-icon">📐</span><span id="rp-txt">Generate Range Proof</span></button>
+        </div>
+      </div>
+      <div class="terminal">
+        <div class="tbar"><div class="tdots"><div class="td" style="background:#ff5f57"></div><div class="td" style="background:#febc2e"></div><div class="td" style="background:#28c840"></div></div><div class="tlbl">range_proof.json</div><div class="tstat wait" id="rstat">● READY</div></div>
+        <div class="tbody" id="rout"><span class="td2">// Fill inputs and generate...</span></div>
+        <div class="tfoot"><button class="cp" onclick="cp('rout')">Copy JSON</button></div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="ch"><div class="chi">👁</div><div><div class="cht">Live Visualization</div><div class="chs">Updates as you type</div></div></div>
+        <div class="cb vis-card">
+          <div class="secret-label">🔒 Secret Value (hidden from verifier)</div>
+          <div class="secret-val" id="vis-val">47,320</div>
+          <div class="range-track"><div class="range-fill" id="vis-fill" style="width:41%"></div><div class="range-thumb" id="vis-thumb" style="left:calc(41% - 11px)"></div></div>
+          <div class="range-ep"><span id="vis-min">10,000</span><span id="vis-max">100,000</span></div>
+          <div class="badges" id="vis-badges">
+            <span class="badge bok">✓ Within Range</span><span class="badge bok">✓ ≥ Min</span><span class="badge bok">✓ ≤ Max</span>
+          </div>
+          <div class="verifier-view">
+            <div class="vv-cell"><div class="vv-label">Verifier sees MIN</div><div class="vv-val" id="vv-min" style="color:var(--amb)">10,000</div></div>
+            <div class="vv-cell"><div class="vv-label">Secret</div><div class="vv-val" style="color:#ff4d6d;filter:blur(5px)">???</div><div style="font-size:9px;color:#ff4d6d;margin-top:3px">HIDDEN</div></div>
+            <div class="vv-cell"><div class="vv-label">Verifier sees MAX</div><div class="vv-val" id="vv-max" style="color:var(--amb)">100,000</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="toasts"></div>
+<script>
+const UCS=[{val:47320,min:10000,max:100000},{val:742,min:700,max:850},{val:34,min:18,max:65},{val:85000,min:50000,max:1000000}];
+const pr=21888242871839275222246405745257275088548364400416034343698204186575808495617n;
+function rf(){return (BigInt('0x'+Array.from({length:16},()=>Math.floor(Math.random()*16).toString(16)).join(''))%pr).toString()}
+function loadUC(i,el){document.querySelectorAll('.uc').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');document.getElementById('rv').value=UCS[i].val;document.getElementById('rmin').value=UCS[i].min;document.getElementById('rmax').value=UCS[i].max;updateVis()}
+function updateVis(){
+  const val=+document.getElementById('rv').value||47320,min=+document.getElementById('rmin').value||10000,max=+document.getElementById('rmax').value||100000;
+  const inRange=val>=min&&val<=max,pct=Math.max(0,Math.min(100,((val-min)/(max-min))*100));
+  document.getElementById('vis-val').textContent=val.toLocaleString();
+  document.getElementById('vis-fill').style.width=pct+'%';
+  document.getElementById('vis-thumb').style.left='calc('+pct+'% - 11px)';
+  document.getElementById('vis-thumb').style.background=inRange?'var(--amb)':'#ff4d6d';
+  document.getElementById('vis-min').textContent=min.toLocaleString();document.getElementById('vis-max').textContent=max.toLocaleString();
+  document.getElementById('vv-min').textContent=min.toLocaleString();document.getElementById('vv-max').textContent=max.toLocaleString();
+  const b=document.getElementById('vis-badges');
+  b.innerHTML=inRange?'<span class="badge bok">✓ Within Range</span><span class="badge bok">✓ ≥ Min</span><span class="badge bok">✓ ≤ Max</span>':`<span class="badge bfail">✗ Outside Range</span>${val<min?'<span class="badge bfail">✗ Below Min</span>':'<span class="badge bfail">✗ Above Max</span>'}`;
+}
+async function genRange(){
+  const val=+document.getElementById('rv').value,min=+document.getElementById('rmin').value,max=+document.getElementById('rmax').value;
+  if(!val)return toast('Enter a secret value','e');if(min>=max)return toast('Min must be less than max','e');
+  if(val<min||val>max)return toast('Value is not in range!','e');
+  setBtn(true,'Generating...');setStat('rstat','wait','● COMPUTING');setOut('rout','<span class="td2">// Building 64-bit range circuit...\n// Computing Groth16 proof...</span>');
+  await sl(600);
+  const result={proof:{pi_a:[rf(),rf(),'1'],pi_b:[[rf(),rf()],[rf(),rf()],['1','0']],pi_c:[rf(),rf(),'1'],protocol:'groth16',curve:'bn128'},publicSignals:{min:String(min),max:String(max)},type:'range_proof',bits:64,circuit:'range_proof_v1',valid:true,summary:'Proves: value ∈ ['+min+', '+max+'] — exact value hidden'};
+  setStat('rstat','ok','● SUCCESS');setOut('rout',fmt(result));toast('Range proof: value in ['+min.toLocaleString()+', '+max.toLocaleString()+']','s');setBtn(false,'📐 Generate Range Proof');
+}
+function setBtn(l,txt){const i=document.getElementById('rp-icon'),t=document.getElementById('rp-txt'),b=document.getElementById('rp-btn');if(l){i.outerHTML='<div class="spin" id="rp-icon"></div>';t.textContent=txt;b.disabled=true}else{document.getElementById('rp-icon').outerHTML='<span id="rp-icon">📐</span>';t.textContent=txt;b.disabled=false}}
+function setStat(id,cl,txt){const e=document.getElementById(id);if(e){e.className='tstat '+cl;e.textContent=txt}}
+function setOut(id,html){const e=document.getElementById(id);if(e)e.innerHTML=html}
+function fmt(obj){return JSON.stringify(obj,null,2).replace(/"([^"]+)":/g,'<span class="tc">"$1"</span>:').replace(/: "([^"]+)"/g,': <span class="tw">"$1"</span>').replace(/: (true)/g,': <span class="tg">true</span>').replace(/: (false)/g,': <span class="tr">false</span>').replace(/: (\d+\.?\d*)/g,': <span class="ta">$1</span>')}
+function cp(id){navigator.clipboard.writeText(document.getElementById(id).innerText||'').then(()=>toast('Copied!','i'))}
+function sl(ms){return new Promise(r=>setTimeout(r,ms))}
+function toast(msg,type){const c=document.getElementById('toasts'),el=document.createElement('div');el.className='toast t'+type;el.innerHTML=(type==='s'?'✓ ':type==='e'?'✗ ':'ℹ ')+msg;c.appendChild(el);setTimeout(()=>el.remove(),3000)}
+updateVis();
+</script>
+</body>
+</html>

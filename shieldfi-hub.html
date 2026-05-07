@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ShieldFi — Private ML & Shielded DeFi Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+:root{--bg:#03050a;--s1:#070c14;--s2:#0d1320;--text:#d8e8f8;--dim:#3a5272;--muted:#0a1220;--border:rgba(255,255,255,0.06)}
+body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;overflow-x:hidden;min-height:100vh}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:2px}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.02'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:0.7}
+
+/* ── NAV ── */
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:14px 40px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.04);background:rgba(3,5,10,0.88);backdrop-filter:blur(20px)}
+@media(max-width:600px){.nav{padding:14px 20px}}
+.nav-logo{display:flex;align-items:center;gap:9px;font-size:17px;font-weight:800;letter-spacing:-0.5px;text-decoration:none;color:var(--text)}
+.nav-hex{width:30px;height:30px;background:linear-gradient(135deg,#00e896,#00aaff);clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);display:grid;place-items:center;font-size:13px;box-shadow:0 0 18px rgba(0,232,150,0.3)}
+.nav-links{display:flex;align-items:center;gap:6px}
+@media(max-width:700px){.nav-links .nl{display:none}}
+.nl{padding:7px 14px;border-radius:7px;font-size:12px;font-weight:600;color:var(--dim);text-decoration:none;transition:all 0.2s;border:1px solid transparent}
+.nl:hover{color:var(--text);background:rgba(255,255,255,0.04);border-color:var(--border)}
+.nav-cta{padding:8px 18px;border-radius:7px;background:linear-gradient(135deg,#00e896,#00cc7a);color:#030a06;font-size:12px;font-weight:800;text-decoration:none;transition:all 0.2s;box-shadow:0 4px 16px rgba(0,232,150,0.2)}
+.nav-cta:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(0,232,150,0.35)}
+
+/* ── HERO ── */
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:120px 24px 80px;position:relative;overflow:hidden;z-index:1}
+.hero-glow{position:absolute;top:5%;left:50%;transform:translateX(-50%);width:900px;height:600px;background:radial-gradient(ellipse,rgba(0,180,255,0.07) 0%,rgba(0,232,150,0.04) 40%,transparent 70%);pointer-events:none;animation:hg 9s ease-in-out infinite}
+@keyframes hg{0%,100%{opacity:0.7;transform:translateX(-50%) scale(1)}50%{opacity:1;transform:translateX(-50%) scale(1.06)}}
+.ring{position:absolute;border-radius:50%;border:1px solid;top:50%;left:50%;transform:translate(-50%,-50%);animation:rp 7s ease-in-out infinite;pointer-events:none}
+.ring:nth-child(2){width:440px;height:440px;border-color:rgba(0,232,150,0.08);animation-delay:0s}
+.ring:nth-child(3){width:740px;height:740px;border-color:rgba(0,180,255,0.05);animation-delay:2.3s}
+.ring:nth-child(4){width:1040px;height:1040px;border-color:rgba(0,180,255,0.03);animation-delay:4.6s}
+@keyframes rp{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:0.8}50%{transform:translate(-50%,-50%) scale(1.02);opacity:0.4}}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);padding:7px 18px;border-radius:100px;font-size:10px;font-family:'JetBrains Mono',monospace;letter-spacing:2px;text-transform:uppercase;color:var(--dim);margin-bottom:26px;position:relative;z-index:2}
+.hbd{width:6px;height:6px;background:#00e896;border-radius:50%;box-shadow:0 0 8px #00e896;animation:bd 2s ease-in-out infinite}
+@keyframes bd{0%,100%{opacity:1}50%{opacity:0.3}}
+.hero h1{font-size:clamp(50px,10vw,110px);font-weight:800;line-height:0.92;letter-spacing:-4px;margin-bottom:22px;position:relative;z-index:2}
+.hero h1 .l1{display:block;color:#fff}
+.hero h1 .l2{display:block;background:linear-gradient(90deg,#00e896,#00aaff,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero h1 .l3{display:block;-webkit-text-stroke:1px rgba(255,255,255,0.12);color:transparent}
+.hero-sub{font-size:15px;color:var(--dim);max-width:520px;line-height:1.8;font-weight:400;margin-bottom:36px;position:relative;z-index:2}
+.hero-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:48px;position:relative;z-index:2}
+.btn-hero{display:flex;align-items:center;gap:8px;padding:13px 26px;border-radius:9px;font-size:13px;font-weight:700;text-decoration:none;transition:all 0.2s}
+.btn-hero-p{background:linear-gradient(135deg,#00e896,#00cc7a);color:#030a06;box-shadow:0 4px 20px rgba(0,232,150,0.22)}
+.btn-hero-p:hover{transform:translateY(-2px);box-shadow:0 10px 32px rgba(0,232,150,0.38)}
+.btn-hero-g{border:1px solid var(--border);color:var(--dim)}
+.btn-hero-g:hover{border-color:rgba(255,255,255,0.12);color:var(--text);background:rgba(255,255,255,0.03)}
+.hero-stack{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;position:relative;z-index:2}
+.sc{display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:100px;background:rgba(255,255,255,0.04);border:1px solid var(--border);font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--dim)}
+.scd{width:5px;height:5px;border-radius:50%}
+
+/* ── PRODUCTS ── */
+.section{padding:80px 40px 100px;max-width:1400px;margin:0 auto;position:relative;z-index:1}
+@media(max-width:600px){.section{padding:60px 20px 70px}}
+.sec-eyebrow{font-size:10px;letter-spacing:3px;text-transform:uppercase;font-family:'JetBrains Mono',monospace;color:var(--dim);margin-bottom:10px}
+.sec-title{font-size:clamp(36px,6vw,62px);font-weight:800;letter-spacing:-2px;margin-bottom:50px;line-height:1}
+.sec-title em{background:linear-gradient(90deg,#00e896,#00aaff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-style:normal}
+
+/* Product grid */
+.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;background:var(--border)}
+@media(max-width:960px){.pgrid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.pgrid{grid-template-columns:1fr}}
+
+.pc{background:var(--s1);padding:32px 28px;position:relative;overflow:hidden;text-decoration:none;color:inherit;display:flex;flex-direction:column;min-height:280px;transition:background 0.3s}
+.pc::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--pc);transform:scaleX(0);transform-origin:left;transition:transform 0.4s cubic-bezier(0.16,1,0.3,1)}
+.pc:hover::after{transform:scaleX(1)}
+.pc-glow{position:absolute;top:-50px;right:-50px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,var(--pc),transparent 70%);opacity:0;transition:opacity 0.4s}
+.pc:hover .pc-glow{opacity:0.05}
+.pc-bnum{position:absolute;bottom:-16px;right:12px;font-size:90px;font-weight:800;color:rgba(255,255,255,0.015);font-family:'JetBrains Mono',monospace;line-height:1;pointer-events:none;letter-spacing:-3px}
+.pc:nth-child(1){--pc:#00e896}.pc:nth-child(2){--pc:#00b4ff}.pc:nth-child(3){--pc:#a78bfa}
+.pc:nth-child(4){--pc:#22c55e}.pc:nth-child(5){--pc:#c084fc}.pc:nth-child(6){--pc:#14b8a6}
+.pc:nth-child(7){--pc:#fbbf24;grid-column:1/-1;min-height:180px;flex-direction:row;align-items:center;gap:60px}
+@media(max-width:960px){.pc:nth-child(7){flex-direction:column;gap:20px}}
+.pc-num{font-size:9px;font-family:'JetBrains Mono',monospace;letter-spacing:2px;color:var(--dim);margin-bottom:14px}
+.pc-icon{font-size:32px;margin-bottom:14px;line-height:1}
+.pc-name{font-size:22px;font-weight:800;letter-spacing:-0.5px;margin-bottom:9px;transition:color 0.3s}
+.pc:nth-child(1):hover .pc-name{color:#00e896}.pc:nth-child(2):hover .pc-name{color:#00b4ff}.pc:nth-child(3):hover .pc-name{color:#a78bfa}
+.pc:nth-child(4):hover .pc-name{color:#22c55e}.pc:nth-child(5):hover .pc-name{color:#c084fc}.pc:nth-child(6):hover .pc-name{color:#14b8a6}
+.pc:nth-child(7):hover .pc-name{color:#fbbf24}
+.pc-desc{font-size:12px;color:var(--dim);line-height:1.7;font-weight:400;flex:1}
+.pc-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:12px}
+.pc-tag{padding:3px 8px;border-radius:3px;font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--dim);background:rgba(255,255,255,0.04);border:1px solid var(--border)}
+.pc-cta{display:inline-flex;align-items:center;gap:5px;margin-top:18px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;font-family:'JetBrains Mono',monospace;color:var(--dim);transition:all 0.2s}
+.pc:hover .pc-cta{color:var(--pc)}
+.pc-cta .arr{transition:transform 0.3s}.pc:hover .pc-cta .arr{transform:translateX(6px)}
+.pc-wide-l{flex:1}
+.pc-wide-r{display:flex;flex-wrap:wrap;gap:9px;justify-content:flex-end}
+.wp{padding:8px 16px;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.18);border-radius:100px;font-size:10px;font-family:'JetBrains Mono',monospace;color:#fbbf24}
+
+/* ── ROLE INTERFACES ── */
+.roles-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:40px}
+@media(max-width:900px){.roles-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:500px){.roles-grid{grid-template-columns:1fr}}
+.rc{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:20px 16px;text-align:center;text-decoration:none;color:inherit;display:block;transition:all 0.25s}
+.rc:hover{transform:translateY(-3px)}
+.rc-em{font-size:26px;margin-bottom:10px;display:block}
+.rc-name{font-size:13px;font-weight:700;margin-bottom:5px}
+.rc-desc{font-size:10px;color:var(--dim);line-height:1.5;font-family:'JetBrains Mono',monospace}
+.rc[data-role="trader"]{--rc:#00e896}.rc[data-role="analyst"]{--rc:#818cf8}.rc[data-role="admin"]{--rc:#fb923c}.rc[data-role="auditor"]{--rc:#22d3ee}.rc[data-role="developer"]{--rc:#f472b6}
+.rc:hover{border-color:rgba(255,255,255,0.12);background:rgba(255,255,255,0.03)}
+
+/* ── API TABLE ── */
+.api-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:24px}
+@media(max-width:800px){.api-grid{grid-template-columns:1fr}}
+.api-card{background:var(--s1);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.api-head{padding:13px 18px;border-bottom:1px solid var(--border);font-size:12px;font-weight:700}
+.ep{display:flex;align-items:center;gap:10px;padding:10px 18px;border-bottom:1px solid rgba(255,255,255,0.03);transition:background 0.15s}
+.ep:last-child{border:0}.ep:hover{background:rgba(255,255,255,0.02)}
+.em{width:38px;flex-shrink:0;font-size:9px;font-weight:800;font-family:'JetBrains Mono',monospace;padding:3px 5px;border-radius:3px;text-align:center}
+.post{background:rgba(0,232,150,0.1);color:#00e896;border:1px solid rgba(0,232,150,0.2)}
+.get{background:rgba(59,130,246,0.1);color:#60a5fa;border:1px solid rgba(59,130,246,0.2)}
+.ep-path{font-family:'JetBrains Mono',monospace;font-size:10px;color:#60a5fa;flex:1}
+.ep-desc{font-size:10px;color:var(--dim);text-align:right}
+
+/* ── FOLDER STRUCTURE ── */
+.folder{background:var(--s1);border:1px solid var(--border);border-radius:10px;overflow:hidden;grid-column:1/-1}
+.folder-body{padding:20px;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:2;color:var(--dim);overflow-x:auto}
+.fd{color:#60a5fa;font-weight:500}.ff{color:var(--text)}.fh{color:#00e896}.fc{color:var(--dim)}
+
+/* ── FOOTER ── */
+footer{border-top:1px solid var(--border);padding:36px 40px;text-align:center;font-size:11px;color:var(--dim);font-family:'JetBrains Mono',monospace;position:relative;z-index:1;letter-spacing:0.5px;line-height:2}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="#" class="nav-logo"><div class="nav-hex">🛡</div>ShieldFi</a>
+  <div class="nav-links">
+    <a href="#products" class="nl">Products</a>
+    <a href="#roles" class="nl">Interfaces</a>
+    <a href="#api" class="nl">API</a>
+    <a href="p7-dashboard.html" class="nl">Dashboard</a>
+    <a href="index-app.html" class="nav-cta">🛡 Launch App</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="ring"></div><div class="ring"></div><div class="ring"></div>
+  <div class="hero-badge" style="position:relative;z-index:2"><div class="hbd"></div>Private ML & Shielded DeFi · 7 Products · 5 User Roles</div>
+  <h1>
+    <span class="l1">SHIELD</span>
+    <span class="l2">FINANCE</span>
+    <span class="l3">PLATFORM</span>
+  </h1>
+  <p class="hero-sub">Seven production-ready privacy tools built on zero-knowledge proofs and fully homomorphic encryption. Trade, compute, and infer — without revealing anything to anyone.</p>
+  <div class="hero-btns">
+    <a href="#products" class="btn-hero btn-hero-p">⚡ Explore All Products</a>
+    <a href="index-app.html" class="btn-hero btn-hero-g">🛡 Launch Unified App →</a>
+  </div>
+  <div class="hero-stack">
+    <div class="sc"><div class="scd" style="background:#00e896"></div>snarkjs / Groth16</div>
+    <div class="sc"><div class="scd" style="background:#60a5fa"></div>TFHE / FHE</div>
+    <div class="sc"><div class="scd" style="background:#a78bfa"></div>bn128 curve</div>
+    <div class="sc"><div class="scd" style="background:#fb923c"></div>Node.js Backend</div>
+    <div class="sc"><div class="scd" style="background:#22c55e"></div>5 User Roles</div>
+    <div class="sc"><div class="scd" style="background:#f472b6"></div>Zero Dependencies</div>
+  </div>
+</section>
+
+<!-- 7 PRODUCTS -->
+<section class="section" id="products">
+  <div class="sec-eyebrow">The Platform</div>
+  <div class="sec-title">7 <em>Privacy</em> Products</div>
+  <div class="pgrid">
+
+    <a class="pc" href="p1-zkproof.html">
+      <div class="pc-glow"></div><div class="pc-bnum">01</div>
+      <div class="pc-num">01 / 07</div><div class="pc-icon">⚡</div>
+      <div class="pc-name">ZK Trade Prover</div>
+      <div class="pc-desc">Generate Groth16 zero-knowledge proofs for shielded DeFi trades. Prove your trade is valid without revealing your balance, amount, or identity to anyone.</div>
+      <div class="pc-tags"><span class="pc-tag">snarkjs</span><span class="pc-tag">Groth16</span><span class="pc-tag">bn128</span><span class="pc-tag">~150k R1CS</span></div>
+      <div class="pc-cta">Open Product <span class="arr">→</span></div>
+    </a>
+
+    <a class="pc" href="p2-fhe.html">
+      <div class="pc-glow"></div><div class="pc-bnum">02</div>
+      <div class="pc-num">02 / 07</div><div class="pc-icon">🔒</div>
+      <div class="pc-name">FHE Compute Engine</div>
+      <div class="pc-desc">Run full mathematical operations on encrypted ciphertexts. Add, multiply, balance-check — the server never decrypts your data at any point in the computation.</div>
+      <div class="pc-tags"><span class="pc-tag">TFHE</span><span class="pc-tag">LWE Scheme</span><span class="pc-tag">Bootstrap</span><span class="pc-tag">128-bit</span></div>
+      <div class="pc-cta">Open Product <span class="arr">→</span></div>
+    </a>
+
+    <a class="pc" href="p3-range.html">
+      <div class="pc-glow"></div><div class="pc-bnum">03</div>
+      <div class="pc-num">03 / 07</div><div class="pc-icon">📐</div>
+      <div class="pc-name">Range Proof Studio</div>
+      <div class="pc-desc">Prove a secret value falls within any range — without revealing the exact number. Credit scores, portfolio sizes, age gates, KYC thresholds. All zero-knowledge.</div>
+      <div class="pc-tags"><span class="pc-tag">64-bit</span><span class="pc-tag">Poseidon</span><span class="pc-tag">~64k R1CS</span><span class="pc-tag">4 use cases</span></div>
+      <div class="pc-cta">Open Product <span class="arr">→</span></div>
+    </a>
+
+    <a class="pc" href="p4-verify.html">
+      <div class="pc-glow"></div><div class="pc-bnum">04</div>
+      <div class="pc-num">04 / 07</div><div class="pc-icon">✅</div>
+      <div class="pc-name">Proof Verifier</div>
+      <div class="pc-desc">Trustless public verification of any Groth16 ZK proof. Run elliptic curve pairing checks on bn128 — off-chain or on-chain for ~250k gas. No private data needed.</div>
+      <div class="pc-tags"><span class="pc-tag">Pairing Check</span><span class="pc-tag">On-chain</span><span class="pc-tag">~250k gas</span><span class="pc-tag">Trustless</span></div>
+      <div class="pc-cta">Open Product <span class="arr">→</span></div>
+    </a>
+
+    <a class="pc" href="p5-shieldtrade.html">
+      <div class="pc-glow"></div><div class="pc-bnum">05</div>
+      <div class="pc-num">05 / 07</div><div class="pc-icon">🛡</div>
+      <div class="pc-name">Shield Trade</div>
+      <div class="pc-desc">End-to-end shielded DeFi trading with a live order book. ZK proof generation, FHE balance verification, and privacy-preserving settlement — amounts and identity stay hidden.</div>
+      <div class="pc-tags"><span class="pc-tag">Shielded</span><span class="pc-tag">Order Book</span><span class="pc-tag">E2E Privacy</span><span class="pc-tag">ZK-gated</span></div>
+      <div class="pc-cta">Open Product <span class="arr">→</span></div>
+    </a>
+
+    <a class="pc" href="p6-mlprivacy.html">
+      <div class="pc-glow"></div><div class="pc-bnum">06</div>
+      <div class="pc-num">06 / 07</div><div class="pc-icon">🧠</div>
+      <div class="pc-name">Private ML Inference</div>
+      <div class="pc-desc">Run 4 production ML models on FHE-encrypted financial data. Risk scoring, fraud detection, price prediction, and portfolio optimization — zero raw data exposure.</div>
+      <div class="pc-tags"><span class="pc-tag">FHE-ML</span><span class="pc-tag">4 Models</span><span class="pc-tag">Inference</span><span class="pc-tag">Risk Score</span></div>
+      <div class="pc-cta">Open Product <span class="arr">→</span></div>
+    </a>
+
+    <a class="pc" href="p7-dashboard.html">
+      <div class="pc-glow"></div>
+      <div class="pc-wide-l">
+        <div class="pc-num">07 / 07</div><div class="pc-icon">📊</div>
+        <div class="pc-name">Privacy Command Center</div>
+        <div class="pc-desc">Unified real-time dashboard across all 7 ShieldFi products. Monitor proof activity, FHE sessions, trade history, ML inferences, API health checks, and live system metrics.</div>
+        <div class="pc-cta">Open Dashboard <span class="arr">→</span></div>
+      </div>
+      <div class="pc-wide-r">
+        <div class="wp">📊 Live Analytics</div><div class="wp">🔍 Proof History</div>
+        <div class="wp">🔒 FHE Monitor</div><div class="wp">⚙️ System Health</div>
+        <div class="wp">📜 Trade Log</div><div class="wp">🧠 ML Metrics</div>
+        <div class="wp">🔌 API Explorer</div><div class="wp">🔬 Circuit Info</div>
+      </div>
+    </a>
+
+  </div>
+</section>
+
+<!-- 5 ROLE INTERFACES -->
+<section class="section" id="roles" style="padding-top:0">
+  <div class="sec-eyebrow">User Interfaces</div>
+  <div class="sec-title" style="margin-bottom:28px">5 Role-Based <em>Dashboards</em></div>
+  <p style="font-size:13px;color:var(--dim);max-width:540px;line-height:1.8;margin-bottom:36px;font-weight:400">Five distinct interfaces — each with its own color theme, permissions, and tool access. Select your role in the unified app to enter your personalized dashboard.</p>
+  <div class="roles-grid">
+    <a class="rc" href="index-app.html" data-role="trader" style="border-color:rgba(0,232,150,0.15)"><span class="rc-em">⚡</span><div class="rc-name" style="color:#00e896">Trader</div><div class="rc-desc">ZK proofs · FHE compute · Shielded trades</div></a>
+    <a class="rc" href="index-app.html" data-role="analyst" style="border-color:rgba(129,140,248,0.15)"><span class="rc-em">🧠</span><div class="rc-name" style="color:#818cf8">ML Analyst</div><div class="rc-desc">Private inference · FHE sessions · Range proofs</div></a>
+    <a class="rc" href="index-app.html" data-role="admin" style="border-color:rgba(251,146,60,0.15)"><span class="rc-em">🔧</span><div class="rc-name" style="color:#fb923c">Protocol Admin</div><div class="rc-desc">Full access · Circuit config · Key management</div></a>
+    <a class="rc" href="index-app.html" data-role="auditor" style="border-color:rgba(34,211,238,0.15)"><span class="rc-em">🔍</span><div class="rc-name" style="color:#22d3ee">Auditor</div><div class="rc-desc">Verify proofs · Trade history · Compliance</div></a>
+    <a class="rc" href="index-app.html" data-role="developer" style="border-color:rgba(244,114,182,0.15)"><span class="rc-em">💻</span><div class="rc-name" style="color:#f472b6">Developer</div><div class="rc-desc">API explorer · Debug tools · Circuit viewer</div></a>
+  </div>
+  <div style="text-align:center">
+    <a href="index-app.html" style="display:inline-flex;align-items:center;gap:10px;padding:15px 32px;background:linear-gradient(135deg,#00e896,#00cc7a);color:#030a06;border-radius:9px;font-size:14px;font-weight:800;text-decoration:none;transition:all 0.2s;box-shadow:0 4px 20px rgba(0,232,150,0.22)">🛡 Launch Multi-Role App</a>
+  </div>
+</section>
+
+<!-- API REFERENCE -->
+<section class="section" id="api" style="padding-top:0">
+  <div class="sec-eyebrow">REST API</div>
+  <div class="sec-title" style="margin-bottom:32px">Complete <em>API</em> Reference</div>
+  <div class="api-grid">
+    <div class="api-card">
+      <div class="api-head">⚡ ZK Proof Endpoints</div>
+      <div class="ep"><span class="em post">POST</span><span class="ep-path">/api/zk/verify</span><span class="ep-desc">Verify Groth16 proof</span></div>
+      <div class="ep"><span class="em post">POST</span><span class="ep-path">/api/zk/generate</span><span class="ep-desc">Generate trade proof</span></div>
+      <div class="ep"><span class="em post">POST</span><span class="ep-path">/api/zk/range</span><span class="ep-desc">Range proof [min,max]</span></div>
+      <div class="ep"><span class="em post">POST</span><span class="ep-path">/api/zk/membership</span><span class="ep-desc">Merkle membership</span></div>
+      <div class="ep"><span class="em get">GET</span><span class="ep-path">/api/zk/circuits</span><span class="ep-desc">List circuits</span></div>
+      <div class="ep"><span class="em get">GET</span><span class="ep-path">/api/zk/stats</span><span class="ep-desc">Proof statistics</span></div>
+    </div>
+    <div class="api-card">
+      <div class="api-head">🔒 FHE Compute Endpoints</div>
+      <div class="ep"><span class="em post">POST</span><span class="ep-path">/api/fhe/keygen</span><span class="ep-desc">Generate key pair</span></div>
+      <div class="ep"><span class="em post">POST</span><span class="ep-path">/api/fhe/encrypt</span><span class="ep-desc">Encrypt plaintext</span></div>
+      <div class="ep"><span class="em post">POST</span><span class="ep-path">/api/fhe/decrypt</span><span class="ep-desc">Decrypt ciphertext</span></div>
+      <div class="ep"><span class="em post">POST</span><span class="ep-path">/api/fhe/add</span><span class="ep-desc">Homomorphic addition</span></div>
+      <div class="ep"><span class="em post">POST</span><span class="ep-path">/api/fhe/balance-check</span><span class="ep-desc">Enc(bal ≥ trade)</span></div>
+      <div class="ep"><span class="em post">POST</span><span class="ep-path">/api/fhe/bootstrap</span><span class="ep-desc">Reduce noise</span></div>
+    </div>
+    <div class="api-card">
+      <div class="api-head">🛡 Trade & ML</div>
+      <div class="ep"><span class="em post">POST</span><span class="ep-path">/api/trade/submit</span><span class="ep-desc">Submit shielded trade</span></div>
+      <div class="ep"><span class="em get">GET</span><span class="ep-path">/api/trade/history</span><span class="ep-desc">Trade history</span></div>
+      <div class="ep"><span class="em get">GET</span><span class="ep-path">/api/trade/stats</span><span class="ep-desc">Trade stats</span></div>
+      <div class="ep"><span class="em post">POST</span><span class="ep-path">/api/ml/infer</span><span class="ep-desc">FHE inference</span></div>
+      <div class="ep"><span class="em get">GET</span><span class="ep-path">/api/ml/models</span><span class="ep-desc">List ML models</span></div>
+      <div class="ep"><span class="em get">GET</span><span class="ep-path">/api/dashboard/overview</span><span class="ep-desc">All system stats</span></div>
+    </div>
+    <div class="folder">
+      <div class="api-head" style="padding:13px 20px">📁 Project Structure</div>
+      <div class="folder-body">
+<span class="fd">shieldfi/</span>
+├── <span class="fd">backend/src/</span>
+│   ├── <span class="fh">standalone-server.js</span>   <span class="fc">← zero-dependency HTTP server · node standalone-server.js</span>
+│   ├── <span class="fd">routes/</span>               <span class="fc">← zk.js · fhe.js · trade.js · ml.js · auth.js · dashboard.js</span>
+│   ├── <span class="fd">services/</span>             <span class="fc">← zkService.js (Groth16) · services.js (FHE + ML + Trade)</span>
+│   └── <span class="fd">middleware/</span>           <span class="fc">← error.js · logger.js</span>
+└── <span class="fd">frontend/</span>
+    ├── <span class="fh">index.html</span>            <span class="fc">← Platform hub (this page)</span>
+    ├── <span class="fh">index-app.html</span>        <span class="fc">← 5-role unified app (role switcher + all tools)</span>
+    ├── <span class="ff">p1-zkproof.html</span>       <span class="fc">← ZK Trade Prover (dark green terminal aesthetic)</span>
+    ├── <span class="ff">p2-fhe.html</span>           <span class="fc">← FHE Compute Engine (deep blue sci-fi aesthetic)</span>
+    ├── <span class="ff">p3-range.html</span>         <span class="fc">← Range Proof Studio (amber geometric aesthetic)</span>
+    ├── <span class="ff">p4-verify.html</span>        <span class="fc">← Proof Verifier (clean light mode aesthetic)</span>
+    ├── <span class="ff">p5-shieldtrade.html</span>   <span class="fc">← Shield Trade (violet futuristic + live order book)</span>
+    ├── <span class="ff">p6-mlprivacy.html</span>     <span class="fc">← Private ML Inference (teal data science aesthetic)</span>
+    └── <span class="ff">p7-dashboard.html</span>     <span class="fc">← Privacy Command Center (unified monitoring dashboard)</span>
+      </div>
+    </div>
+  </div>
+  <div style="background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:20px 24px;margin-top:0">
+    <div style="font-size:11px;font-weight:700;color:var(--dim);letter-spacing:1px;text-transform:uppercase;font-family:'JetBrains Mono',monospace;margin-bottom:12px">Quick Start</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:12px;line-height:2;color:var(--dim)">
+      <span style="color:#fbbf24"># Start the backend</span><br/>
+      <span style="color:#00e896">node</span> backend/src/standalone-server.js<br/><br/>
+      <span style="color:#fbbf24"># Open the platform hub</span><br/>
+      open frontend/index.html<br/><br/>
+      <span style="color:#fbbf24"># Or launch unified multi-role app</span><br/>
+      open frontend/index-app.html<br/><br/>
+      <span style="color:#fbbf24"># Test the core ZK verify endpoint</span><br/>
+      <span style="color:#00e896">curl</span> -X POST http://localhost:3001/api/zk/verify \<br/>
+      &nbsp;&nbsp;-H <span style="color:#a78bfa">"Content-Type: application/json"</span> \<br/>
+      &nbsp;&nbsp;-d <span style="color:#a78bfa">'{"proof":{"pi_a":["1","2","1"],"pi_b":[["3","4"],["5","6"],["1","0"]],"pi_c":["7","8","1"],"protocol":"groth16","curve":"bn128"},"publicSignals":["1000","100000","0xabc"]}'</span>
+    </div>
+  </div>
+</section>
+
+<footer>
+  ShieldFi Platform · Private ML & Shielded DeFi · ZK-Proofs (Groth16/bn128) · FHE (TFHE) · 7 Products · 5 Role Interfaces<br/>
+  Backend: <span style="color:#00e896">node backend/src/standalone-server.js</span> · No npm install required · Frontend opens directly in browser<br/>
+  ZK/FHE computation is simulated for demo — production: replace with snarkjs.groth16.fullProve() + node-seal (Microsoft SEAL)
+</footer>
+</body>
+</html>

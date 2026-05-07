@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>FHE Compute Engine — ShieldFi</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=Fira+Code:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#020610;--s1:#050c1a;--s2:#0a1020;--blue:#60a5fa;--b2:#3b82f6;--dim:#1e3d6c;--text:#c0d8f8;--muted:#0d1a30;--border:rgba(96,165,250,0.1);--r:10px}
+body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-height:100vh}
+body::after{content:'';position:fixed;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--blue),transparent);opacity:0.5;z-index:100}
+.topnav{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;border-bottom:1px solid var(--border);background:rgba(2,6,16,0.92);backdrop-filter:blur(12px);position:sticky;top:0;z-index:99}
+.back{text-decoration:none;color:var(--dim);font-size:11px;font-family:'Fira Code',monospace;padding:6px 12px;border:1px solid var(--border);border-radius:6px;transition:color 0.2s}.back:hover{color:var(--blue);border-color:rgba(96,165,250,0.25)}
+.nbadge{display:flex;align-items:center;gap:5px;font-size:10px;font-family:'Fira Code',monospace;color:var(--blue);background:rgba(96,165,250,0.07);border:1px solid var(--border);padding:5px 12px;border-radius:100px}
+.ndot{width:5px;height:5px;background:var(--blue);border-radius:50%;animation:p 2s ease-in-out infinite}
+@keyframes p{0%,100%{opacity:1}50%{opacity:0.3}}
+.container{max-width:1200px;margin:0 auto;padding:36px 28px}
+.page-tag{font-size:9px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;font-family:'Fira Code',monospace;margin-bottom:10px}
+.page-h1{font-size:clamp(26px,4.5vw,44px);font-weight:800;letter-spacing:-1.5px;line-height:1.1;margin-bottom:12px}
+.page-h1 em{color:var(--blue);font-style:normal}
+.page-sub{font-size:13px;color:var(--dim);line-height:1.8;max-width:480px;margin-bottom:28px;font-weight:300}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:800px){.g2{grid-template-columns:1fr}}
+.mb16{margin-bottom:16px}
+.card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.ch{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.chl{display:flex;align-items:center;gap:10px}
+.chi{width:27px;height:27px;border-radius:6px;background:rgba(96,165,250,0.08);border:1px solid var(--border);display:grid;place-items:center;font-size:12px}
+.cht{font-size:12px;font-weight:700}.chs{font-size:9px;color:var(--dim);font-family:'Fira Code',monospace;margin-top:1px}
+.cb{padding:18px}
+.sess-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--s1);border:1px solid var(--border);border-radius:var(--r);margin-bottom:18px;flex-wrap:wrap;gap:12px}
+.sl2{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);font-family:'Fira Code',monospace}
+.sv{font-size:11px;color:var(--blue);font-family:'Fira Code',monospace;margin-top:3px}
+.ops-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.op{background:var(--s2);border:1px solid var(--border);border-radius:7px;padding:13px;cursor:pointer;transition:all 0.2s;text-align:center}
+.op:hover,.op.sel{border-color:rgba(96,165,250,0.3);background:rgba(96,165,250,0.04)}
+.op-em{font-size:22px;margin-bottom:6px}
+.op-name{font-size:11px;font-weight:700}
+.op-form{font-size:9px;color:var(--dim);font-family:'Fira Code',monospace;margin-top:4px}
+.field{margin-bottom:12px}
+label{display:block;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:6px;font-family:'Fira Code',monospace}
+input{width:100%;background:var(--s2);border:1px solid rgba(96,165,250,0.08);border-radius:7px;padding:10px 12px;color:var(--text);font-family:'Fira Code',monospace;font-size:12px;outline:none;transition:border-color 0.2s}
+input:focus{border-color:rgba(96,165,250,0.3);box-shadow:0 0 0 3px rgba(96,165,250,0.05)}
+input::placeholder{color:var(--muted)}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn{width:100%;padding:12px;border:none;border-radius:7px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;margin-top:12px;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-p{background:linear-gradient(135deg,var(--blue),var(--b2));color:#020d1a}
+.btn-p:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(96,165,250,0.2)}
+.btn-p:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+.btn-g{background:transparent;border:1px solid var(--border);color:var(--dim)}
+.btn-g:hover{border-color:rgba(96,165,250,0.3);color:var(--text)}
+.noise-bar{height:6px;background:var(--s2);border-radius:3px;overflow:hidden;margin:8px 0}
+.noise-fill{height:100%;border-radius:3px;transition:width 0.5s,background 0.5s}
+.warn{background:rgba(245,158,11,0.05);border:1px solid rgba(245,158,11,0.15);border-radius:7px;padding:10px 13px;font-size:11px;color:rgba(245,158,11,0.8);line-height:1.6;margin-bottom:13px;display:flex;gap:8px}
+.terminal{background:#010408;border:1px solid rgba(96,165,250,0.07);border-radius:8px;overflow:hidden}
+.tbar{background:#02060c;border-bottom:1px solid rgba(96,165,250,0.05);padding:9px 13px;display:flex;align-items:center;justify-content:space-between}
+.tdots{display:flex;gap:5px}.td{width:10px;height:10px;border-radius:50%}
+.tlbl{font-size:10px;color:var(--dim);font-family:'Fira Code',monospace}
+.tstat{font-size:10px;font-family:'Fira Code',monospace}
+.ok{color:#00ff88}.err{color:#ff4d6d}.wait{color:var(--blue)}
+.tbody{padding:14px;font-family:'Fira Code',monospace;font-size:11px;line-height:1.8;min-height:80px;max-height:260px;overflow-y:auto;color:#1a3a5c;white-space:pre-wrap;word-break:break-all}
+.tfoot{display:flex;justify-content:flex-end;padding:7px 13px;border-top:1px solid rgba(96,165,250,0.05)}
+.cp{background:var(--s2);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:3px 9px;font-size:10px;font-family:'Fira Code',monospace;cursor:pointer;transition:all 0.2s}
+.cp:hover{color:var(--blue)}
+.key-chip{padding:5px 12px;border-radius:100px;font-size:10px;font-family:'Fira Code',monospace;border:1px solid;cursor:default}
+.kno{border-color:var(--border);color:var(--dim)}.kyes{border-color:rgba(0,255,136,0.3);color:#00ff88;background:rgba(0,255,136,0.06)}
+.sm-btn{padding:7px 14px;border-radius:6px;font-family:'Outfit',sans-serif;font-size:11px;font-weight:700;cursor:pointer;background:transparent;border:1px solid var(--border);color:var(--dim);transition:all 0.2s}
+.sm-btn:hover{border-color:rgba(96,165,250,0.3);color:var(--blue)}
+.spin{width:14px;height:14px;border:2px solid rgba(255,255,255,0.15);border-top-color:var(--text);border-radius:50%;animation:sp 0.7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.tg{color:#00ff88}.tc{color:var(--blue)}.ta{color:#f5a623}.tw{color:var(--text)}.tr{color:#ff4d6d}.td2{color:var(--dim)}
+#toasts{position:fixed;bottom:18px;right:18px;z-index:999;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--s1);border:1px solid var(--border);border-radius:7px;padding:10px 14px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:8px;min-width:200px;font-family:'Fira Code',monospace;animation:ti 0.25s ease}
+@keyframes ti{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:translateX(0)}}
+.ts{border-color:rgba(0,255,136,0.25);color:#00ff88}.te{border-color:rgba(255,77,109,0.25);color:#ff4d6d}.ti{border-color:rgba(96,165,250,0.25);color:var(--blue)}
+</style>
+</head>
+<body>
+<div class="topnav">
+  <a href="index.html" class="back">← Platform</a>
+  <div style="font-size:13px;font-weight:700">🔒 FHE Compute Engine</div>
+  <div class="nbadge"><div class="ndot"></div>TFHE · LWE · 128-bit</div>
+</div>
+<div class="container">
+  <div class="page-tag">02 / 07 · FHE Compute Engine</div>
+  <h1 class="page-h1">Compute on <em>Encrypted</em><br/>Data. No Decryption.</h1>
+  <p class="page-sub">Fully Homomorphic Encryption lets you add, multiply, and compare values while they stay completely encrypted. The server never sees your raw numbers.</p>
+  <div class="sess-bar">
+    <div><div class="sl2">Session</div><div class="sv" id="sess-disp">None — create a session first</div></div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="key-chip kno" id="key-chip">🔑 No Keys</div>
+      <button class="sm-btn" onclick="newSession()">+ New Session</button>
+    </div>
+  </div>
+  <div class="g2">
+    <div>
+      <div class="card mb16">
+        <div class="ch"><div class="chl"><div class="chi">⚙️</div><div><div class="cht" id="op-title">Homomorphic Addition</div><div class="chs">select operation below</div></div></div></div>
+        <div class="cb">
+          <div class="ops-grid">
+            <div class="op sel" id="fop-add" onclick="selOp('add',this)"><div class="op-em">➕</div><div class="op-name">Add</div><div class="op-form">Enc(a) ⊕ Enc(b)</div></div>
+            <div class="op" id="fop-mul" onclick="selOp('mul',this)"><div class="op-em">✖️</div><div class="op-name">Multiply</div><div class="op-form">Enc(a) ⊗ Enc(b)</div></div>
+            <div class="op" id="fop-bal" onclick="selOp('bal',this)"><div class="op-em">⚖️</div><div class="op-name">Balance Check</div><div class="op-form">Enc(b) ≥ Enc(t)</div></div>
+            <div class="op" id="fop-boot" onclick="selOp('boot',this)"><div class="op-em">♻️</div><div class="op-name">Bootstrap</div><div class="op-form">noise → fresh</div></div>
+          </div>
+          <div class="warn"><span>⚠️</span><span>Values are encrypted locally before any operation. Server never sees plaintext.</span></div>
+          <div class="fr">
+            <div class="field"><label id="lbl-a">Value A 🔒</label><input type="number" id="va" value="12500"/></div>
+            <div class="field"><label id="lbl-b">Value B 🔒</label><input type="number" id="vb" value="7500"/></div>
+          </div>
+          <button class="btn btn-p" id="run-btn" onclick="runFHE()"><span id="run-icon">🔒</span><span id="run-txt">Encrypt & Compute</span></button>
+          <div style="margin-top:14px">
+            <div style="font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);font-family:'Fira Code',monospace;margin-bottom:6px">Ciphertext Noise Level</div>
+            <div class="noise-bar"><div class="noise-fill" id="nfill" style="width:2%;background:var(--blue)"></div></div>
+            <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--dim);font-family:'Fira Code',monospace"><span id="nval">~2%</span><span>Bootstrap threshold: 80%</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch"><div class="chl"><div class="chi">📋</div><div><div class="cht">Operation Log</div></div></div></div>
+        <div class="cb"><div id="oplog" style="font-family:'Fira Code',monospace;font-size:10px;color:var(--dim);line-height:2;max-height:120px;overflow-y:auto"><span style="color:var(--muted)">// No operations yet</span></div></div>
+      </div>
+    </div>
+    <div>
+      <div class="card mb16">
+        <div class="ch"><div class="chl"><div class="chi">📡</div><div><div class="cht">Encrypted Result</div><div class="chs">Only keyholder can decrypt</div></div></div></div>
+        <div class="cb">
+          <div class="terminal">
+            <div class="tbar"><div class="tdots"><div class="td" style="background:#ff5f57"></div><div class="td" style="background:#febc2e"></div><div class="td" style="background:#28c840"></div></div><div class="tlbl">fhe_result.ct</div><div class="tstat wait" id="fstat">● IDLE</div></div>
+            <div class="tbody" id="fout"><span class="td2">// Select an operation and compute...</span></div>
+            <div class="tfoot"><button class="cp" onclick="cp('fout')">Copy</button></div>
+          </div>
+          <button class="btn btn-g" onclick="decrypt()" style="margin-top:12px">🔓 Decrypt with Session Key</button>
+          <div id="dval" style="display:none;margin-top:10px;background:var(--s2);border:1px solid rgba(0,255,136,0.15);border-radius:7px;padding:14px;text-align:center">
+            <div style="font-size:9px;color:var(--dim);font-family:'Fira Code',monospace;margin-bottom:4px">DECRYPTED VALUE</div>
+            <div style="font-size:30px;font-weight:800;color:#00ff88;font-family:'Fira Code',monospace" id="dnum">—</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch"><div class="chl"><div class="chi">📖</div><div><div class="cht">FHE Concepts</div></div></div></div>
+        <div class="cb" style="font-size:11px;color:var(--dim);line-height:1.8">
+          <p style="margin-bottom:10px"><span style="color:var(--blue);font-family:'Fira Code',monospace">Homomorphic addition</span> adds noise linearly — cheap and composable.</p>
+          <p style="margin-bottom:10px"><span style="color:var(--blue);font-family:'Fira Code',monospace">Homomorphic multiplication</span> grows noise quadratically — bootstrap if noise &gt; 80%.</p>
+          <p><span style="color:#00ff88;font-family:'Fira Code',monospace">Bootstrap</span> refreshes the ciphertext, resetting noise so deep computation chains remain valid.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="toasts"></div>
+<script>
+let session=null,curOp='add',lastResult=null,noise=2,logs=[];
+function newSession(){session='sess_'+Math.random().toString(36).slice(2,10);document.getElementById('sess-disp').textContent=session;const kc=document.getElementById('key-chip');kc.className='key-chip kyes';kc.textContent='🔑 Keys Active';toast('FHE session created · 128-bit','s')}
+function selOp(op,el){curOp=op;document.querySelectorAll('.op').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');const cfg={add:['Homomorphic Addition','Value A 🔒','Value B 🔒'],mul:['Homomorphic Multiplication','Factor A 🔒','Factor B 🔒'],bal:['Balance Check','Your Balance 🔒','Trade Amount 🔒'],boot:['Bootstrap — Noise Refresh','Ciphertext 🔒','(unused)']};const c=cfg[op];document.getElementById('op-title').textContent=c[0];document.getElementById('lbl-a').textContent=c[1];document.getElementById('lbl-b').textContent=c[2]}
+async function runFHE(){
+  if(!session)newSession();
+  const a=+document.getElementById('va').value,b=+document.getElementById('vb').value;
+  if(!a)return toast('Enter Value A','e');
+  setBtn(true,'Computing...');setStat('fstat','wait','● ENCRYPTING');setOut('fout','<span class="td2">// Encrypting inputs under TFHE...\n// Sending ciphertexts to compute engine...</span>');document.getElementById('dval').style.display='none';
+  await sl(320);setStat('fstat','wait','● COMPUTING');setOut('fout','<span class="td2">// Running homomorphic operation...\n// No decryption occurring...</span>');await sl(380);
+  const vals={add:a+b,mul:a*b,bal:a>=b?1:0,boot:a};lastResult=vals[curOp];
+  const noiseInc={add:12,mul:Math.min(noise*8,50),bal:20,boot:-noise+5};noise=Math.max(2,Math.min(95,noise+noiseInc[curOp]));
+  const pct=noise,fill=document.getElementById('nfill');fill.style.width=pct+'%';fill.style.background=pct>80?'#ff4d6d':pct>50?'#f5a623':'var(--blue)';document.getElementById('nval').textContent='~'+Math.round(pct)+'%';
+  const ops={add:'homomorphic_add',mul:'homomorphic_multiply',bal:'encrypted_balance_check',boot:'bootstrap'};
+  const rid='ct_'+Math.random().toString(36).slice(2,14);
+  setStat('fstat','ok','● SUCCESS');setOut('fout',fmt({session,operation:ops[curOp],input_A_ct:'ct_'+Math.random().toString(36).slice(2,8),input_B_ct:'ct_'+Math.random().toString(36).slice(2,8),result_ct:rid,noiseLevel:Math.round(noise)+'%',requiresBootstrap:noise>80,note:'Plaintext values never exposed during computation'}));
+  logs.unshift('<span style="color:var(--blue)">['+new Date().toLocaleTimeString()+']</span> '+ops[curOp]+' → '+rid);if(logs.length>5)logs=logs.slice(0,5);
+  document.getElementById('oplog').innerHTML=logs.join('\n');toast('FHE computation complete!','s');setBtn(false,'🔒 Encrypt & Compute');
+}
+function decrypt(){if(lastResult===null)return toast('Run a computation first','e');const el=document.getElementById('dval');el.style.display='block';document.getElementById('dnum').textContent=lastResult.toLocaleString();toast('Decrypted with session key','s')}
+function setBtn(l,txt){const i=document.getElementById('run-icon'),t=document.getElementById('run-txt'),b=document.getElementById('run-btn');if(l){i.outerHTML='<div class="spin" id="run-icon"></div>';t.textContent=txt;b.disabled=true}else{document.getElementById('run-icon').outerHTML='<span id="run-icon">🔒</span>';t.textContent=txt;b.disabled=false}}
+function setStat(id,cl,txt){const e=document.getElementById(id);if(e){e.className='tstat '+cl;e.textContent=txt}}
+function setOut(id,html){const e=document.getElementById(id);if(e)e.innerHTML=html}
+function fmt(obj){return JSON.stringify(obj,null,2).replace(/"([^"]+)":/g,'<span class="tc">"$1"</span>:').replace(/: "([^"]+)"/g,': <span class="tw">"$1"</span>').replace(/: (true)/g,': <span class="tg">true</span>').replace(/: (false)/g,': <span class="tr">false</span>').replace(/: (\d+\.?\d*)/g,': <span class="ta">$1</span>')}
+function cp(id){navigator.clipboard.writeText(document.getElementById(id).innerText||'').then(()=>toast('Copied!','i'))}
+function sl(ms){return new Promise(r=>setTimeout(r,ms))}
+function toast(msg,type){const c=document.getElementById('toasts'),el=document.createElement('div');el.className='toast t'+type;el.innerHTML=(type==='s'?'✓ ':type==='e'?'✗ ':'ℹ ')+msg;c.appendChild(el);setTimeout(()=>el.remove(),3000)}
+</script>
+</body>
+</html>

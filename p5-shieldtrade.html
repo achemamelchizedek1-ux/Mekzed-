@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Shield Trade — ShieldFi</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;700;900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#04020a;--s1:#0a0614;--s2:#12091e;--v:#c084fc;--v2:#9333ea;--text:#f0e6ff;--dim:#4a2d6a;--muted:#1a0d2e;--border:rgba(192,132,252,0.12);--r:12px}
+body{background:var(--bg);color:var(--text);font-family:'Unbounded',sans-serif;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 50% at 50% 0%,rgba(192,132,252,0.07),transparent 60%);pointer-events:none;z-index:0}
+
+.topnav{display:flex;align-items:center;justify-content:space-between;padding:16px 32px;border-bottom:1px solid var(--border);background:rgba(4,2,10,0.9);backdrop-filter:blur(12px);position:sticky;top:0;z-index:100}
+.back-btn{text-decoration:none;color:var(--dim);font-size:11px;font-family:'IBM Plex Mono',monospace;transition:color 0.2s}.back-btn:hover{color:var(--v)}
+.nav-pill{display:flex;align-items:center;gap:6px;font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--v);background:rgba(192,132,252,0.08);border:1px solid var(--border);padding:5px 14px;border-radius:100px}
+.dot{width:5px;height:5px;background:var(--v);border-radius:50%;box-shadow:0 0 8px var(--v);animation:p 1.8s ease-in-out infinite}
+@keyframes p{0%,100%{opacity:1}50%{opacity:0.3}}
+
+.container{max-width:1200px;margin:0 auto;padding:40px 32px;position:relative;z-index:1}
+.page-tag{font-size:9px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;font-family:'IBM Plex Mono',monospace;margin-bottom:10px}
+.page-h1{font-size:clamp(28px,5vw,52px);font-weight:900;letter-spacing:-2px;line-height:1;margin-bottom:14px}
+.page-h1 em{color:var(--v);font-style:normal}
+.page-sub{font-size:12px;color:var(--dim);line-height:1.8;max-width:480px;font-weight:400;margin-bottom:36px}
+
+/* Order Book */
+.trade-layout{display:grid;grid-template-columns:1fr 340px;gap:20px}
+@media(max-width:900px){.trade-layout{grid-template-columns:1fr}}
+
+.card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.card-h{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.ch-icon{width:28px;height:28px;border-radius:7px;background:rgba(192,132,252,0.1);border:1px solid var(--border);display:grid;place-items:center;font-size:13px}
+.ch-t{font-size:12px;font-weight:700}
+.ch-s{font-size:10px;color:var(--dim);font-family:'IBM Plex Mono',monospace;margin-top:1px}
+.card-b{padding:20px}
+
+/* Price ticker */
+.ticker-band{background:linear-gradient(135deg,rgba(192,132,252,0.06),rgba(147,51,234,0.04));border:1px solid var(--border);border-radius:var(--r);padding:20px 24px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
+.tick-pair{font-size:22px;font-weight:900;letter-spacing:-1px}
+.tick-price{font-size:28px;font-weight:900;color:var(--v);font-family:'IBM Plex Mono',monospace;letter-spacing:-1px}
+.tick-change{font-size:11px;font-family:'IBM Plex Mono',monospace;padding:4px 10px;border-radius:100px;background:rgba(0,255,136,0.08);color:#00ff88;border:1px solid rgba(0,255,136,0.2)}
+.tick-stats{display:flex;gap:24px}
+.ts-item .label{font-size:9px;color:var(--dim);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:1px}
+.ts-item .val{font-size:13px;font-weight:700;margin-top:3px;font-family:'IBM Plex Mono',monospace}
+
+/* Order book */
+.ob-header{display:grid;grid-template-columns:1fr 1fr 1fr;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dim);font-family:'IBM Plex Mono',monospace;padding:8px 12px;border-bottom:1px solid var(--border)}
+.ob-row{display:grid;grid-template-columns:1fr 1fr 1fr;padding:7px 12px;font-size:11px;font-family:'IBM Plex Mono',monospace;position:relative;cursor:pointer;transition:background 0.15s}
+.ob-row:hover{background:rgba(192,132,252,0.04)}
+.ob-row .bar{position:absolute;top:0;bottom:0;left:0;opacity:0.08;border-radius:0 4px 4px 0}
+.ob-row.ask .bar{background:#ff4d6d}
+.ob-row.bid .bar{background:#00ff88}
+.ob-row .price.ask{color:#ff4d6d}
+.ob-row .price.bid{color:#00ff88}
+.ob-mid{padding:10px 12px;font-size:13px;font-weight:700;font-family:'IBM Plex Mono',monospace;color:var(--v);text-align:center;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:rgba(192,132,252,0.04)}
+
+/* Trade form */
+.side-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:16px;background:var(--s2);border-radius:8px;padding:4px}
+.side-tab{padding:10px;border-radius:6px;text-align:center;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s;color:var(--dim)}
+.side-tab.buy{background:rgba(0,255,136,0.12);color:#00ff88;border:1px solid rgba(0,255,136,0.2)}
+.side-tab.sell.active-sell{background:rgba(255,77,109,0.12);color:#ff4d6d;border:1px solid rgba(255,77,109,0.2)}
+
+.field{margin-bottom:14px}
+label{display:block;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:7px;font-family:'IBM Plex Mono',monospace}
+input,select{width:100%;background:var(--s2);border:1px solid rgba(192,132,252,0.1);border-radius:7px;padding:11px 13px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:12px;outline:none;transition:border-color 0.2s}
+input:focus,select:focus{border-color:rgba(192,132,252,0.35);box-shadow:0 0 0 3px rgba(192,132,252,0.07)}
+input::placeholder{color:var(--muted)}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+.priv-note{display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(192,132,252,0.05);border:1px solid rgba(192,132,252,0.12);border-radius:7px;font-size:10px;color:rgba(192,132,252,0.7);margin-bottom:14px;font-family:'IBM Plex Mono',monospace}
+
+/* Trade button */
+.trade-btn{width:100%;padding:14px;border:none;border-radius:8px;font-family:'Unbounded',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;margin-top:4px;display:flex;align-items:center;justify-content:center;gap:8px}
+.buy-btn{background:linear-gradient(135deg,#00c86a,#009944);color:#001a0c;box-shadow:0 4px 20px rgba(0,200,100,0.2)}
+.buy-btn:hover{transform:translateY(-1px);box-shadow:0 8px 28px rgba(0,200,100,0.3)}
+.buy-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+
+/* Trade history */
+.hist-row{display:grid;grid-template-columns:1fr 80px 100px 90px;padding:10px 0;border-bottom:1px solid rgba(192,132,252,0.05);font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--dim);align-items:center}
+.hist-row:last-child{border:0}
+.hist-id{color:var(--v);font-size:10px}
+.status-pill{padding:3px 8px;border-radius:4px;font-size:9px;font-weight:700;text-align:center}
+.sp-ok{background:rgba(0,255,136,0.1);color:#00ff88;border:1px solid rgba(0,255,136,0.2)}
+.sp-pen{background:rgba(192,132,252,0.1);color:var(--v);border:1px solid rgba(192,132,252,0.2)}
+
+/* Pipeline */
+.pip{display:flex;flex-direction:column;gap:0}
+.pip-s{display:flex;gap:12px;padding:11px 0;border-bottom:1px dashed rgba(192,132,252,0.07)}
+.pip-s:last-child{border:0}
+.pip-n{width:22px;height:22px;border-radius:50%;border:1px solid rgba(192,132,252,0.15);display:grid;place-items:center;font-size:10px;font-weight:700;color:var(--dim);font-family:'IBM Plex Mono',monospace;flex-shrink:0;transition:all 0.3s}
+.pip-s.done .pip-n{background:rgba(0,255,136,0.1);border-color:#00c86a;color:#00c86a}
+.pip-s.active .pip-n{background:rgba(192,132,252,0.1);border-color:var(--v);color:var(--v);animation:glow 1s ease-in-out infinite}
+@keyframes glow{0%,100%{box-shadow:0 0 6px rgba(192,132,252,0.3)}50%{box-shadow:0 0 18px rgba(192,132,252,0.6)}}
+.pip-t{font-size:11px;font-weight:700}.pip-d{font-size:10px;color:var(--dim);font-family:'IBM Plex Mono',monospace;margin-top:2px}
+
+/* Terminal */
+.terminal{background:#030108;border:1px solid rgba(192,132,252,0.08);border-radius:8px;overflow:hidden;margin-top:16px}
+.t-bar{background:#040210;border-bottom:1px solid rgba(192,132,252,0.06);padding:10px 14px;display:flex;align-items:center;justify-content:space-between}
+.t-dots{display:flex;gap:5px}.tdot{width:10px;height:10px;border-radius:50%}
+.t-label{font-size:10px;color:var(--dim);font-family:'IBM Plex Mono',monospace}
+.t-stat{font-size:10px;font-family:'IBM Plex Mono',monospace}
+.ok{color:#00ff88}.err{color:#ff4d6d}.wait{color:var(--v)}
+.t-body{padding:14px;font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:1.8;min-height:80px;max-height:240px;overflow-y:auto;color:#3a1a5a;white-space:pre-wrap;word-break:break-all}
+.t-foot{display:flex;justify-content:flex-end;padding:8px 14px;border-top:1px solid rgba(192,132,252,0.06)}
+.copy-btn{background:var(--s2);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:3px 9px;font-size:10px;font-family:'IBM Plex Mono',monospace;cursor:pointer;transition:all 0.2s}
+.copy-btn:hover{color:var(--v);border-color:rgba(192,132,252,0.3)}
+
+.spin{width:14px;height:14px;border:2px solid rgba(0,0,0,0.2);border-top-color:#001a0c;border-radius:50%;animation:sp 0.7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.g{color:#00ff88}.c{color:var(--v)}.a{color:#f5a623}.w{color:var(--text)}.r{color:#ff4d6d}.d{color:var(--dim)}
+
+.mb16{margin-bottom:16px}
+</style>
+</head>
+<body>
+<div class="topnav">
+  <a href="index.html" class="back-btn">← Back to Platform</a>
+  <div style="font-size:12px;font-weight:700">🛡 Shield Trade</div>
+  <div class="nav-pill"><div class="dot"></div> ZK-Gated · E2E Private</div>
+</div>
+
+<div class="container">
+  <div class="page-tag">05 / 07 · Shield Trade</div>
+  <h1 class="page-h1">Trade <em>Shielded.</em><br/>Settle Proven.</h1>
+  <p class="page-sub">Every trade is gated by a ZK proof verified on-chain. Your amounts, balances, and identity are cryptographically hidden throughout the entire execution flow.</p>
+
+  <!-- Ticker -->
+  <div class="ticker-band">
+    <div><div class="tick-pair" id="tick-pair">ETH / USDC</div><div style="font-size:10px;color:var(--dim);font-family:'IBM Plex Mono',monospace;margin-top:4px">Shielded DEX · ZK-gated</div></div>
+    <div class="tick-price" id="tick-price">$3,241.85</div>
+    <div class="tick-change" id="tick-change">+2.34%</div>
+    <div class="tick-stats">
+      <div class="ts-item"><div class="label">24h Vol</div><div class="val">$4.2M</div></div>
+      <div class="ts-item"><div class="label">Proofs/hr</div><div class="val" id="proofs-hr">0</div></div>
+      <div class="ts-item"><div class="label">Privacy</div><div class="val" style="color:#00ff88">100%</div></div>
+    </div>
+  </div>
+
+  <div class="trade-layout">
+    <!-- LEFT: Order Book + History -->
+    <div>
+      <div class="card mb16">
+        <div class="card-h"><div class="ch-icon">📋</div><div><div class="ch-t">Shielded Order Book</div><div class="ch-s">Amounts hidden — only side and price visible</div></div></div>
+        <div class="ob-header"><span>Price (USDC)</span><span>Amount</span><span>Total</span></div>
+        <!-- Asks -->
+        <div id="asks"></div>
+        <div class="ob-mid" id="ob-mid">$3,241.85 <span style="font-size:10px;color:var(--dim)">— spread $0.42</span></div>
+        <!-- Bids -->
+        <div id="bids"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-h"><div class="ch-icon">📜</div><div><div class="ch-t">Trade History</div><div class="ch-s">Shielded — no amounts visible</div></div></div>
+        <div class="card-b">
+          <div class="hist-row" style="font-size:9px;font-weight:700;letter-spacing:1px;color:var(--dim);text-transform:uppercase;font-family:'IBM Plex Mono',monospace"><span>Trade ID</span><span>Status</span><span>Proof Hash</span><span>Time</span></div>
+          <div id="hist-body">
+            <div style="text-align:center;padding:20px;color:var(--dim);font-size:11px;font-family:'IBM Plex Mono',monospace">// No trades yet — submit a shielded order</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Trade Form -->
+    <div>
+      <div class="card mb16">
+        <div class="card-h"><div class="ch-icon">⚡</div><div><div class="ch-t">Place Shielded Order</div><div class="ch-s">ZK proof generated automatically</div></div></div>
+        <div class="card-b">
+          <!-- Side toggle -->
+          <div class="side-tabs">
+            <div class="side-tab buy" id="tab-buy" onclick="setSide('buy')">Buy / Long</div>
+            <div class="side-tab" id="tab-sell" onclick="setSide('sell')">Sell / Short</div>
+          </div>
+
+          <div class="field"><label>Asset Pair</label>
+            <select id="tr-pair" onchange="updateTicker()">
+              <option>ETH / USDC</option><option>BTC / USDC</option><option>SOL / USDC</option><option>MATIC / USDC</option>
+            </select>
+          </div>
+
+          <div class="priv-note"><span>🔒</span>Your balance and trade amount are encrypted via ZK proof — only the price is public.</div>
+
+          <div class="field-row">
+            <div class="field"><label>Trade Amount 🔒</label><input type="number" id="tr-amount" value="5000" placeholder="5000"/></div>
+            <div class="field"><label>Your Balance 🔒</label><input type="number" id="tr-balance" value="50000" placeholder="50000"/></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Min Balance 👁</label><input type="number" id="tr-min" value="1000" placeholder="1000"/></div>
+            <div class="field"><label>Max Trade 👁</label><input type="number" id="tr-maxsize" value="100000" placeholder="100000"/></div>
+          </div>
+
+          <button class="trade-btn buy-btn" id="tr-btn" onclick="submitTrade()">
+            <span id="tr-icon">🛡</span><span id="tr-txt">Execute Shielded Trade</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Pipeline -->
+      <div class="card mb16">
+        <div class="card-h"><div class="ch-icon">🔄</div><div><div class="ch-t">Execution Pipeline</div></div></div>
+        <div class="card-b">
+          <div class="pip">
+            <div class="pip-s done" id="p1"><div class="pip-n" id="p1n">✓</div><div><div class="pip-t">Generate ZK Proof</div><div class="pip-d">Groth16 · local computation</div></div></div>
+            <div class="pip-s" id="p2"><div class="pip-n" id="p2n">2</div><div><div class="pip-t">Verify Proof On-chain</div><div class="pip-d">bn128 pairing · ~250k gas</div></div></div>
+            <div class="pip-s" id="p3"><div class="pip-n" id="p3n">3</div><div><div class="pip-t">FHE Balance Check</div><div class="pip-d">Enc(balance) ≥ Enc(amount)</div></div></div>
+            <div class="pip-s" id="p4"><div class="pip-n" id="p4n">4</div><div><div class="pip-t">Settle Shielded</div><div class="pip-d">Execute — no data leaked</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Result -->
+      <div class="terminal">
+        <div class="t-bar"><div class="t-dots"><div class="tdot" style="background:#ff5f57"></div><div class="tdot" style="background:#febc2e"></div><div class="tdot" style="background:#28c840"></div></div><div class="t-label">trade_result.json</div><div class="t-stat wait" id="tr-status">● READY</div></div>
+        <div class="t-body" id="tr-out"><span class="d">// Submit a shielded order to see execution result</span></div>
+        <div class="t-foot"><button class="copy-btn" onclick="cp('tr-out')">Copy</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toasts" style="position:fixed;bottom:20px;right:20px;z-index:999;display:flex;flex-direction:column;gap:8px"></div>
+
+<script>
+let side = 'buy';
+let history = [];
+let proofCount = 0;
+const PRICES = {'ETH / USDC':3241.85,'BTC / USDC':67420.50,'SOL / USDC':182.34,'MATIC / USDC':0.8821};
+const CHANGES = {'ETH / USDC':'+2.34%','BTC / USDC':'+1.12%','SOL / USDC':'-0.87%','MATIC / USDC':'+3.21%'};
+
+function rf(){return (BigInt(Math.floor(Math.random()*1e18))%21888242871839275222246405745257275088548364400416034343698204186575808495617n).toString()}
+function rid(){return Math.random().toString(36).slice(2,10)}
+
+function setSide(s){
+  side=s;
+  document.getElementById('tab-buy').className='side-tab '+(s==='buy'?'buy':'');
+  document.getElementById('tab-sell').className='side-tab '+(s==='sell'?'active-sell':'');
+  const btn=document.getElementById('tr-btn');
+  btn.className='trade-btn '+(s==='buy'?'buy-btn':'');
+  if(s==='sell'){btn.style.background='linear-gradient(135deg,#cc1f4a,#990f35)';btn.style.color='#fff';}
+  else{btn.style.background='';btn.style.color='';}
+  document.getElementById('tr-txt').textContent=s==='buy'?'Execute Shielded Buy':'Execute Shielded Sell';
+}
+
+function updateTicker(){
+  const pair=document.getElementById('tr-pair').value;
+  document.getElementById('tick-pair').textContent=pair;
+  document.getElementById('tick-price').textContent='$'+PRICES[pair].toLocaleString();
+  const ch=CHANGES[pair];
+  const chEl=document.getElementById('tick-change');
+  chEl.textContent=ch;
+  chEl.style.color=ch.startsWith('+')?'#00ff88':'#ff4d6d';
+  chEl.style.background=ch.startsWith('+')?'rgba(0,255,136,0.08)':'rgba(255,77,109,0.08)';
+  renderOrderBook();
+}
+
+function renderOrderBook(){
+  const pair=document.getElementById('tr-pair').value;
+  const mid=PRICES[pair];
+  const asksEl=document.getElementById('asks');
+  const bidsEl=document.getElementById('bids');
+  document.getElementById('ob-mid').innerHTML='$'+mid.toLocaleString()+' <span style="font-size:10px;color:var(--dim)">— spread $'+( (mid*0.0001).toFixed(2))+'</span>';
+
+  let asksHTML='', bidsHTML='';
+  for(let i=5;i>=1;i--){
+    const price=(mid*(1+i*0.0003)).toFixed(2);
+    const amount=(Math.random()*5).toFixed(3);
+    const total=(price*amount).toFixed(2);
+    const width=(Math.random()*60+20)+'%';
+    asksHTML+=`<div class="ob-row ask"><div class="bar" style="width:${width}"></div><span class="price ask">$${(+price).toLocaleString()}</span><span>****</span><span>$${(+total).toLocaleString()}</span></div>`;
+  }
+  for(let i=1;i<=5;i++){
+    const price=(mid*(1-i*0.0003)).toFixed(2);
+    const amount=(Math.random()*5).toFixed(3);
+    const total=(price*amount).toFixed(2);
+    const width=(Math.random()*60+20)+'%';
+    bidsHTML+=`<div class="ob-row bid"><div class="bar" style="width:${width}"></div><span class="price bid">$${(+price).toLocaleString()}</span><span>****</span><span>$${(+total).toLocaleString()}</span></div>`;
+  }
+  asksEl.innerHTML=asksHTML;
+  bidsEl.innerHTML=bidsHTML;
+}
+
+async function submitTrade(){
+  const amount=+document.getElementById('tr-amount').value;
+  const balance=+document.getElementById('tr-balance').value;
+  const min=+document.getElementById('tr-min').value;
+  const max=+document.getElementById('tr-maxsize').value;
+  if(!amount||!balance)return toast('Enter trade amount and balance','error');
+  if(balance<min)return toast('Balance below minimum requirement','error');
+  if(amount>max)return toast('Trade exceeds max size','error');
+
+  const btn=document.getElementById('tr-btn');btn.disabled=true;
+  const icon=document.getElementById('tr-icon');const txt=document.getElementById('tr-txt');
+  icon.outerHTML='<div class="spin" id="tr-icon"></div>';
+  txt.textContent='Generating ZK Proof...';
+  setS('tr-status','wait','● PROVING');
+  setO('tr-out','<span class="d">// Step 1: Generating Groth16 ZK proof...\n// Computing elliptic curve witness...</span>');
+  setPip(2,'active');await sl(400);
+
+  const proof={pi_a:[rf(),rf(),'1'],pi_b:[[rf(),rf()],[rf(),rf()],['1','0']],pi_c:[rf(),rf(),'1'],protocol:'groth16',curve:'bn128'};
+  const publicSignals=[String(min),String(max),'0x'+rid()];
+  txt.textContent='Verifying On-chain...';
+  setPip(2,'done');setPip(3,'active');
+  setO('tr-out','<span class="d">// Step 2: Running pairing check on bn128...\n// Step 3: FHE balance check in progress...</span>');
+  await sl(400);setPip(3,'done');setPip(4,'active');txt.textContent='Settling...';await sl(300);
+
+  const tradeId='trade_'+rid();
+  const result={id:tradeId,status:'executed',side,pair:document.getElementById('tr-pair').value,proofHash:'0x'+rid(),gasUsed:250000,executedAt:new Date().toISOString(),privacy:'shielded — amount and balance not revealed',message:'Trade settled. No private data leaked.'};
+  setPip(4,'done');
+  setS('tr-status','ok','● SETTLED');
+  setO('tr-out',fmt(result));
+  proofCount++;
+  document.getElementById('proofs-hr').textContent=proofCount;
+  history.unshift(result);
+  renderHistory();
+  renderOrderBook();
+  toast('Shielded trade executed!','success');
+
+  document.getElementById('tr-icon').outerHTML='<span id="tr-icon">🛡</span>';
+  txt.textContent=side==='buy'?'Execute Shielded Buy':'Execute Shielded Sell';
+  btn.disabled=false;
+}
+
+function renderHistory(){
+  const el=document.getElementById('hist-body');
+  if(!history.length){el.innerHTML='<div style="text-align:center;padding:20px;color:var(--dim);font-size:11px;font-family:IBM Plex Mono,monospace">// No trades yet</div>';return;}
+  el.innerHTML=history.slice(0,8).map(h=>`
+    <div class="hist-row">
+      <span class="hist-id">${h.id}</span>
+      <span><div class="status-pill sp-ok">settled</div></span>
+      <span style="color:var(--v)">${h.proofHash.slice(0,10)}...</span>
+      <span>${new Date(h.executedAt).toLocaleTimeString()}</span>
+    </div>`).join('');
+}
+
+function setPip(n,st){
+  const el=document.getElementById('p'+n);const num=document.getElementById('p'+n+'n');
+  if(!el)return;
+  el.className='pip-s '+(st==='done'?'done':st==='active'?'active':'');
+  num.textContent=st==='done'?'✓':n;
+}
+function setS(id,t,txt){const el=document.getElementById(id);if(!el)return;el.className='t-stat '+t;el.textContent=txt}
+function setO(id,h){const el=document.getElementById(id);if(el)el.innerHTML=h}
+function fmt(obj){return JSON.stringify(obj,null,2).replace(/"([^"]+)":/g,'<span class="c">"$1"</span>:').replace(/: "([^"]+)"/g,': <span class="w">"$1"</span>').replace(/: (true)/g,': <span class="g">true</span>').replace(/: (false)/g,': <span class="r">false</span>').replace(/: (\d+\.?\d*)/g,': <span class="a">$1</span>')}
+function cp(id){navigator.clipboard.writeText(document.getElementById(id).innerText||'').then(()=>toast('Copied!','success'))}
+function sl(ms){return new Promise(r=>setTimeout(r,ms))}
+function toast(msg,type){const c=document.getElementById('toasts');const el=document.createElement('div');el.style.cssText=`background:#0a0614;border:1px solid ${type==='success'?'rgba(0,255,136,0.25)':'rgba(255,77,109,0.25)'};border-radius:7px;padding:11px 16px;font-size:11px;color:${type==='success'?'#00ff88':'#ff4d6d'};font-family:'IBM Plex Mono',monospace;min-width:200px`;el.textContent=(type==='success'?'✓ ':'✗ ')+msg;c.appendChild(el);setTimeout(()=>el.remove(),3000)}
+
+renderOrderBook();
+setInterval(renderOrderBook, 3000);
+</script>
+</body>
+</html>

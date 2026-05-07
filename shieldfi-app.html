@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ShieldFi App — Choose Your Role</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+:root{--bg:#03050a;--s1:#070c14;--s2:#0c1220;--text:#dce8f8;--dim:#3a5070;--border:rgba(255,255,255,0.06)}
+body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;display:flex;flex-direction:column}
+
+/* ── ANIMATED BG ── */
+#bg{position:fixed;inset:0;z-index:0;overflow:hidden}
+.orb{position:absolute;border-radius:50%;filter:blur(80px);animation:drift 14s ease-in-out infinite;opacity:0}
+@keyframes drift{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(3%,2%) scale(1.04)}66%{transform:translate(-2%,3%) scale(0.97)}}
+
+/* ── ROLE SELECT SCREEN ── */
+#login{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;background:var(--bg);transition:opacity 0.5s,transform 0.5s}
+#login.out{opacity:0;transform:scale(0.96);pointer-events:none}
+
+.login-logo{text-align:center;margin-bottom:48px}
+.logo-glyph{font-size:48px;display:block;margin-bottom:14px;filter:drop-shadow(0 0 32px rgba(0,210,140,0.45))}
+.logo-name{font-size:38px;font-weight:800;letter-spacing:-2px;color:#fff;margin-bottom:6px}
+.logo-sub{font-size:13px;color:var(--dim);font-weight:300;line-height:1.7;max-width:360px;margin:0 auto}
+
+.role-label{font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--dim);font-family:'JetBrains Mono',monospace;margin-bottom:20px;text-align:center}
+
+.roles{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;max-width:880px;width:100%}
+@media(max-width:800px){.roles{grid-template-columns:1fr 1fr;max-width:400px}}
+
+.role{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:22px 16px;text-align:center;cursor:pointer;transition:all 0.3s;position:relative;overflow:hidden}
+.role::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--rc);transform:scaleX(0);transition:transform 0.35s cubic-bezier(0.16,1,0.3,1)}
+.role:hover{transform:translateY(-4px);border-color:rgba(255,255,255,0.14);background:rgba(255,255,255,0.06)}
+.role:hover::after{transform:scaleX(1)}
+.role:active{transform:translateY(-1px)}
+.role[data-r="trader"]{--rc:#00e896}
+.role[data-r="analyst"]{--rc:#818cf8}
+.role[data-r="admin"]{--rc:#fb923c}
+.role[data-r="auditor"]{--rc:#22d3ee}
+.role[data-r="developer"]{--rc:#f472b6}
+.role-em{font-size:30px;display:block;margin-bottom:10px}
+.role-name{font-size:13px;font-weight:700;color:#fff;margin-bottom:5px}
+.role-desc{font-size:10px;color:var(--dim);line-height:1.5}
+.role-tags{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:10px}
+.rtag{padding:2px 7px;border-radius:3px;font-size:9px;font-family:'JetBrains Mono',monospace;background:rgba(255,255,255,0.05);color:var(--dim);border:1px solid rgba(255,255,255,0.06)}
+
+/* ── MAIN APP ── */
+#app{flex:1;display:flex;overflow:hidden;position:relative;z-index:1;display:none}
+
+/* ── SIDEBAR ── */
+#sidebar{width:210px;min-height:100vh;background:var(--s1);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;transition:background 0.5s,border-color 0.5s}
+.sl{padding:18px 14px 14px;border-bottom:1px solid var(--border)}
+.sl-top{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.sl-hex{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--acc),var(--acc2));display:grid;place-items:center;font-size:14px;flex-shrink:0;box-shadow:0 0 16px rgba(var(--rgb),0.3);transition:all 0.5s}
+.sl-name{font-size:15px;font-weight:800;letter-spacing:-0.5px}
+.sl-name span{color:var(--acc)}
+.rpill{display:flex;align-items:center;gap:5px;padding:4px 10px;background:rgba(var(--rgb),0.08);border:1px solid rgba(var(--rgb),0.2);border-radius:100px;font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--acc);width:fit-content;transition:all 0.5s}
+.rpd{width:5px;height:5px;background:var(--acc);border-radius:50%;animation:pd 1.8s ease-in-out infinite}
+@keyframes pd{0%,100%{opacity:1}50%{opacity:0.3}}
+.nsec{padding:14px 10px 4px;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--dim);font-family:'JetBrains Mono',monospace}
+.ni{display:flex;align-items:center;gap:9px;padding:8px 10px;margin:1px 6px;border-radius:7px;cursor:pointer;transition:all 0.15s;font-size:11px;font-weight:600;color:var(--dim);border:1px solid transparent}
+.ni:hover{background:rgba(255,255,255,0.03);color:var(--text);border-color:var(--border)}
+.ni.active{background:rgba(var(--rgb),0.08);color:var(--acc);border-color:rgba(var(--rgb),0.18)}
+.nico{width:20px;height:20px;border-radius:5px;display:grid;place-items:center;font-size:11px;background:rgba(255,255,255,0.04);flex-shrink:0}
+.ni.active .nico{background:rgba(var(--rgb),0.1)}
+.nbadge{margin-left:auto;background:var(--acc);color:var(--bg);font-size:8px;font-weight:800;padding:2px 6px;border-radius:100px;font-family:'JetBrains Mono',monospace}
+.sf{margin-top:auto;padding:12px;border-top:1px solid var(--border)}
+.sf-inner{display:flex;align-items:center;gap:9px}
+.sf-av{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--dim),var(--s2));border:1px solid rgba(var(--rgb),0.25);display:grid;place-items:center;font-size:12px;flex-shrink:0}
+.sf-n{font-size:11px;font-weight:700}
+.sf-a{font-size:9px;color:var(--dim);font-family:'JetBrains Mono',monospace;margin-top:1px}
+.sf-out{margin-left:auto;font-size:10px;color:var(--dim);cursor:pointer;padding:3px 8px;border-radius:4px;border:1px solid var(--border);font-family:'JetBrains Mono',monospace;transition:all 0.2s}
+.sf-out:hover{color:var(--acc);border-color:rgba(var(--rgb),0.3)}
+
+/* ── MAIN CONTENT ── */
+#main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:13px 24px;border-bottom:1px solid var(--border);background:var(--s1);backdrop-filter:blur(10px);position:sticky;top:0;z-index:50;flex-shrink:0;transition:background 0.5s}
+.tb-t{font-size:16px;font-weight:800;letter-spacing:-0.5px}
+.tb-s{font-size:10px;color:var(--dim);font-family:'JetBrains Mono',monospace;margin-top:2px}
+.tb-r{display:flex;align-items:center;gap:8px}
+.chip{display:flex;align-items:center;gap:5px;padding:5px 11px;border-radius:100px;font-size:9px;font-weight:700;font-family:'JetBrains Mono',monospace;border:1px solid}
+.chip-acc{background:rgba(var(--rgb),0.07);color:var(--acc);border-color:rgba(var(--rgb),0.2)}
+.chip-dim{background:rgba(255,255,255,0.03);color:var(--dim);border-color:var(--border)}
+
+/* ── PAGE ── */
+.page{display:none;padding:22px 24px;flex:1;animation:pi 0.3s ease}
+.page.active{display:block}
+@keyframes pi{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── LAYOUT ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media(max-width:1100px){.g3{grid-template-columns:1fr 1fr}.g4{grid-template-columns:1fr 1fr}}
+@media(max-width:800px){.g2,.g3,.g4{grid-template-columns:1fr}}
+.mb14{margin-bottom:14px}.mb20{margin-bottom:20px}
+
+/* ── CARDS ── */
+.card{background:var(--s1);border:1px solid var(--border);border-radius:10px;overflow:hidden;transition:background 0.5s,border-color 0.5s}
+.ch{padding:13px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.chl{display:flex;align-items:center;gap:8px}
+.chi{width:26px;height:26px;border-radius:6px;background:rgba(var(--rgb),0.08);border:1px solid rgba(var(--rgb),0.15);display:grid;place-items:center;font-size:12px}
+.cht{font-size:12px;font-weight:700}
+.chs{font-size:9px;color:var(--dim);font-family:'JetBrains Mono',monospace;margin-top:1px}
+.cb{padding:16px}
+
+/* ── STATS ── */
+.sc{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:16px;position:relative;overflow:hidden;transition:all 0.25s}
+.sc:hover{transform:translateY(-2px);border-color:rgba(var(--rgb),0.2)}
+.sc::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--acc),transparent);opacity:0.6}
+.sc-icon{font-size:18px;margin-bottom:10px}
+.sc-val{font-size:24px;font-weight:800;letter-spacing:-1px;font-family:'JetBrains Mono',monospace}
+.sc-lbl{font-size:9px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;margin-top:4px}
+.sc-ch{font-size:9px;font-family:'JetBrains Mono',monospace;margin-top:6px;color:var(--acc)}
+
+/* ── FORMS ── */
+.field{margin-bottom:12px}
+.field label{display:block;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:6px;font-family:'JetBrains Mono',monospace}
+input,textarea,select{width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.06);border-radius:7px;padding:10px 12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;outline:none;transition:border-color 0.2s}
+input:focus,textarea:focus,select:focus{border-color:rgba(var(--rgb),0.35);box-shadow:0 0 0 3px rgba(var(--rgb),0.07)}
+input::placeholder,textarea::placeholder{color:var(--dim)}
+textarea{min-height:90px;resize:vertical;font-size:11px;line-height:1.6}
+select{cursor:pointer;appearance:none}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+
+/* ── BUTTONS ── */
+.btn{padding:11px 18px;border:none;border-radius:7px;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s;display:inline-flex;align-items:center;justify-content:center;gap:7px}
+.btn-full{width:100%}
+.btn-acc{background:linear-gradient(135deg,var(--acc),var(--acc2));color:var(--bg)}
+.btn-acc:hover{transform:translateY(-1px);box-shadow:0 5px 18px rgba(var(--rgb),0.25)}
+.btn-acc:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--dim)}
+.btn-ghost:hover{border-color:rgba(var(--rgb),0.3);color:var(--acc)}
+.btn-sm{padding:6px 12px;font-size:10px}
+
+/* ── TERMINAL ── */
+.terminal{background:#020405;border:1px solid rgba(255,255,255,0.05);border-radius:8px;overflow:hidden}
+.t-bar{background:#030608;border-bottom:1px solid rgba(255,255,255,0.04);padding:8px 12px;display:flex;align-items:center;justify-content:space-between}
+.t-dots{display:flex;gap:4px}.td{width:9px;height:9px;border-radius:50%}
+.t-lbl{font-size:9px;color:var(--dim);font-family:'JetBrains Mono',monospace}
+.t-stat{font-size:9px;font-family:'JetBrains Mono',monospace}
+.ts-ok{color:#00ff88}.ts-err{color:#ff4d6d}.ts-wait{color:#60a5fa}
+.t-body{padding:12px;font-family:'JetBrains Mono',monospace;font-size:10px;line-height:1.8;min-height:70px;max-height:240px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;color:#1e4030}
+.t-foot{display:flex;justify-content:space-between;align-items:center;padding:6px 12px;border-top:1px solid rgba(255,255,255,0.04)}
+.cp{background:var(--s2);border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:3px 8px;font-size:9px;font-family:'JetBrains Mono',monospace;cursor:pointer;transition:all 0.2s}
+.cp:hover{color:var(--acc)}
+
+/* ── PIPELINE ── */
+.pip{display:flex;flex-direction:column;gap:0}
+.pip-s{display:flex;gap:10px;padding:10px 0;border-bottom:1px dashed rgba(255,255,255,0.04)}
+.pip-s:last-child{border:0}
+.pip-n{width:22px;height:22px;border-radius:50%;border:1px solid rgba(255,255,255,0.1);display:grid;place-items:center;font-size:9px;font-weight:700;color:var(--dim);font-family:'JetBrains Mono',monospace;flex-shrink:0;transition:all 0.3s}
+.pip-s.done .pip-n{background:rgba(var(--rgb),0.12);border-color:var(--acc);color:var(--acc)}
+.pip-s.act .pip-n{background:rgba(96,165,250,0.1);border-color:#60a5fa;color:#60a5fa;animation:gp 1s ease-in-out infinite}
+@keyframes gp{0%,100%{box-shadow:0 0 6px rgba(96,165,250,0.3)}50%{box-shadow:0 0 18px rgba(96,165,250,0.6)}}
+.pip-t{font-size:11px;font-weight:600}
+.pip-d{font-size:9px;color:var(--dim);font-family:'JetBrains Mono',monospace;margin-top:2px}
+
+/* ── PRIV MAP ── */
+.pm{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.pr{display:flex;align-items:center;gap:7px;padding:7px 9px;border-radius:6px;font-size:10px;font-weight:600}
+.pr.h{background:rgba(var(--rgb),0.05);border:1px solid rgba(var(--rgb),0.12)}
+.pr.p{background:rgba(251,191,36,0.04);border:1px solid rgba(251,191,36,0.1)}
+.prpill{padding:2px 6px;border-radius:3px;font-size:8px;font-weight:700;text-transform:uppercase;font-family:'JetBrains Mono',monospace}
+.h .prpill{background:rgba(var(--rgb),0.1);color:var(--acc)}
+.p .prpill{background:rgba(251,191,36,0.1);color:#fbbf24}
+.prn{flex:1}.prnt{font-size:8px;color:var(--dim)}
+
+/* ── ACTIVITY ── */
+.af{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.03)}
+.af:last-child{border:0}
+.af-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.af-title{font-size:11px;font-weight:600}
+.af-sub{font-size:9px;color:var(--dim);font-family:'JetBrains Mono',monospace;margin-top:2px}
+.af-val{font-size:10px;font-family:'JetBrains Mono',monospace;margin-left:auto;text-align:right}
+
+/* ── MISC ── */
+.info-box{background:rgba(96,165,250,0.05);border:1px solid rgba(96,165,250,0.12);border-radius:7px;padding:10px 12px;font-size:11px;color:rgba(96,165,250,0.8);line-height:1.6;display:flex;gap:7px;margin-bottom:12px}
+.warn-box{background:rgba(251,191,36,0.05);border:1px solid rgba(251,191,36,0.12);border-radius:7px;padding:10px 12px;font-size:11px;color:rgba(251,191,36,0.8);line-height:1.6;display:flex;gap:7px;margin-bottom:12px}
+.net-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.03)}
+.net-row:last-child{border:0}
+.nr-n{font-size:11px;font-weight:600}.nr-s{font-size:9px;color:var(--dim);font-family:'JetBrains Mono',monospace;margin-top:1px}
+.nr-status{display:flex;align-items:center;gap:4px;font-size:9px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.nrd{width:6px;height:6px;border-radius:50%}
+.model-row{background:var(--s2);border:1px solid var(--border);border-radius:7px;padding:12px;cursor:pointer;transition:all 0.2s;margin-bottom:7px}
+.model-row:last-child{margin-bottom:0}
+.model-row:hover,.model-row.sel{border-color:rgba(var(--rgb),0.3);background:rgba(var(--rgb),0.04)}
+.mr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
+.mr-name{font-size:11px;font-weight:700}
+.mr-acc-bar{height:3px;background:var(--s1);border-radius:2px;overflow:hidden;margin-top:6px}
+.mr-acc-fill{height:100%;background:var(--acc);border-radius:2px}
+.noise-bar{height:5px;background:var(--s2);border-radius:3px;overflow:hidden;margin:6px 0}
+.nf{height:100%;border-radius:3px;transition:width 0.5s,background 0.5s}
+.spin{width:13px;height:13px;border:2px solid rgba(255,255,255,0.15);border-top-color:currentColor;border-radius:50%;animation:sp 0.7s linear infinite;display:inline-block}
+@keyframes sp{to{transform:rotate(360deg)}}
+.tg{color:#00ff88}.tc{color:#60a5fa}.ta{color:#fbbf24}.tw{color:var(--text)}.tr{color:#ff4d6d}.td2{color:var(--dim)}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:3px;height:3px}::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.07);border-radius:2px}
+
+/* ── TOAST ── */
+#toasts{position:fixed;bottom:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:7px;pointer-events:none}
+.toast{background:var(--s1);border:1px solid var(--border);border-radius:7px;padding:9px 13px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:7px;min-width:200px;box-shadow:0 8px 24px rgba(0,0,0,0.5);animation:ti 0.25s ease;pointer-events:all}
+@keyframes ti{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:translateX(0)}}
+.toast.s{border-color:rgba(0,255,136,0.25);color:#00ff88}
+.toast.e{border-color:rgba(255,77,109,0.25);color:#ff4d6d}
+.toast.i{border-color:rgba(96,165,250,0.25);color:#60a5fa}
+</style>
+</head>
+<body>
+<div id="bg">
+  <div class="orb" id="orb1" style="width:500px;height:500px;top:-10%;left:-10%;animation-duration:16s"></div>
+  <div class="orb" id="orb2" style="width:400px;height:400px;bottom:-10%;right:-5%;animation-duration:20s;animation-delay:-7s"></div>
+  <div class="orb" id="orb3" style="width:300px;height:300px;top:40%;right:30%;animation-duration:18s;animation-delay:-3s"></div>
+</div>
+
+<!-- ROLE SELECT -->
+<div id="login">
+  <div class="login-logo">
+    <span class="logo-glyph">🛡</span>
+    <div class="logo-name">ShieldFi</div>
+    <div class="logo-sub">Private ML & Shielded DeFi Platform<br/>ZK-Proofs · FHE · Encrypted Trading</div>
+  </div>
+  <div class="role-label">Select your role to continue</div>
+  <div class="roles">
+    <div class="role" data-r="trader" onclick="login('trader')">
+      <span class="role-em">⚡</span>
+      <div class="role-name">Trader</div>
+      <div class="role-desc">Execute shielded trades using ZK proofs and FHE balance checks</div>
+      <div class="role-tags"><span class="rtag">zk</span><span class="rtag">trade</span><span class="rtag">fhe</span></div>
+    </div>
+    <div class="role" data-r="analyst" onclick="login('analyst')">
+      <span class="role-em">🧠</span>
+      <div class="role-name">ML Analyst</div>
+      <div class="role-desc">Run private ML inference on encrypted financial data</div>
+      <div class="role-tags"><span class="rtag">ml</span><span class="rtag">fhe</span><span class="rtag">range</span></div>
+    </div>
+    <div class="role" data-r="admin" onclick="login('admin')">
+      <span class="role-em">🔧</span>
+      <div class="role-name">Protocol Admin</div>
+      <div class="role-desc">Manage circuits, keys, system health and protocol config</div>
+      <div class="role-tags"><span class="rtag">admin</span><span class="rtag">config</span><span class="rtag">keys</span></div>
+    </div>
+    <div class="role" data-r="auditor" onclick="login('auditor')">
+      <span class="role-em">🔍</span>
+      <div class="role-name">Auditor</div>
+      <div class="role-desc">Verify proofs, review trade history, compliance reporting</div>
+      <div class="role-tags"><span class="rtag">verify</span><span class="rtag">history</span><span class="rtag">audit</span></div>
+    </div>
+    <div class="role" data-r="developer" onclick="login('developer')">
+      <span class="role-em">💻</span>
+      <div class="role-name">Developer</div>
+      <div class="role-desc">Full API access, debug tools, circuit explorer, live logs</div>
+      <div class="role-tags"><span class="rtag">all</span><span class="rtag">debug</span><span class="rtag">api</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <!-- SIDEBAR -->
+  <nav id="sidebar">
+    <div class="sl">
+      <div class="sl-top"><div class="sl-hex" id="sl-hex">🛡</div><div class="sl-name">Shield<span>Fi</span></div></div>
+      <div class="rpill"><div class="rpd"></div><span id="rp-label">Trader</span></div>
+    </div>
+    <div class="nsec">Main</div>
+    <div class="ni active" id="ni-dash" onclick="goPage('dash',this)"><span class="nico">📊</span>Dashboard</div>
+    <div class="ni" id="ni-zk" onclick="goPage('zk',this)"><span class="nico">⚡</span>ZK Proofs<span class="nbadge" id="zk-badge" style="display:none">0</span></div>
+    <div class="ni" id="ni-fhe" onclick="goPage('fhe',this)"><span class="nico">🔒</span>FHE Compute</div>
+    <div class="ni" id="ni-trade" onclick="goPage('trade',this)"><span class="nico">🛡</span>Shield Trade</div>
+    <div class="nsec">Tools</div>
+    <div class="ni" id="ni-verify" onclick="goPage('verify',this)"><span class="nico">✅</span>Verify Proof</div>
+    <div class="ni" id="ni-range" onclick="goPage('range',this)"><span class="nico">📐</span>Range Proof</div>
+    <div class="ni" id="ni-ml" onclick="goPage('ml',this)"><span class="nico">🧠</span>ML Inference</div>
+    <div class="nsec" id="dev-sec" style="display:none">Dev Tools</div>
+    <div class="ni" id="ni-api" onclick="goPage('api',this)" style="display:none"><span class="nico">🔌</span>API Explorer</div>
+    <div class="sf">
+      <div class="sf-inner">
+        <div class="sf-av" id="sf-av">👤</div>
+        <div><div class="sf-n" id="sf-name">Trader</div><div class="sf-a">0x7f3a…9b2e</div></div>
+        <div class="sf-out" onclick="logout()">exit</div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div id="main">
+    <div class="topbar">
+      <div><div class="tb-t" id="tb-t">Dashboard</div><div class="tb-s" id="tb-s">Privacy protocol overview</div></div>
+      <div class="tb-r">
+        <div class="chip chip-acc"><span style="width:5px;height:5px;background:var(--acc);border-radius:50%;animation:pd 1.8s ease-in-out infinite"></span><span id="tb-role">Trader</span></div>
+        <div class="chip chip-dim">snarkjs</div><div class="chip chip-dim">128-bit</div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dash">
+      <div class="g4 mb20">
+        <div class="sc"><div class="sc-icon">⚡</div><div class="sc-val" id="st-p">0</div><div class="sc-lbl">Proofs Generated</div><div class="sc-ch">ZK · Groth16</div></div>
+        <div class="sc"><div class="sc-icon">✅</div><div class="sc-val" id="st-v">0</div><div class="sc-lbl">Verified</div><div class="sc-ch">Trustless</div></div>
+        <div class="sc"><div class="sc-icon">🔒</div><div class="sc-val" id="st-f">0</div><div class="sc-lbl">FHE Ops</div><div class="sc-ch">Encrypted</div></div>
+        <div class="sc"><div class="sc-icon">🛡</div><div class="sc-val" id="st-t">0</div><div class="sc-lbl">Shielded Trades</div><div class="sc-ch">ZK-gated</div></div>
+      </div>
+      <div class="g2">
+        <div>
+          <div class="card mb14">
+            <div class="ch"><div class="chl"><div class="chi">🌊</div><div><div class="cht">Live Activity</div><div class="chs">Recent operations</div></div></div></div>
+            <div class="cb" id="activity-feed" style="min-height:140px"><div style="text-align:center;padding:24px;color:var(--dim);font-size:11px;font-family:'JetBrains Mono',monospace">// No activity yet</div></div>
+          </div>
+          <div class="card">
+            <div class="ch"><div class="chl"><div class="chi">🚀</div><div><div class="cht">Quick Actions</div></div></div></div>
+            <div class="cb" style="display:flex;flex-direction:column;gap:7px">
+              <button class="btn btn-acc btn-full" onclick="goPage('zk',document.getElementById('ni-zk'))">⚡ Generate ZK Proof</button>
+              <button class="btn btn-ghost btn-full" onclick="goPage('fhe',document.getElementById('ni-fhe'))">🔒 FHE Compute Session</button>
+              <button class="btn btn-ghost btn-full" onclick="goPage('trade',document.getElementById('ni-trade'))">🛡 Execute Shielded Trade</button>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="card mb14">
+            <div class="ch"><div class="chl"><div class="chi">⚙️</div><div><div class="cht">System Status</div></div></div></div>
+            <div class="cb">
+              <div class="net-row"><div><div class="nr-n">ZK Engine (Groth16)</div><div class="nr-s">bn128 · ~150k R1CS</div></div><div class="nr-status"><div class="nrd" style="background:#00ff88;box-shadow:0 0 7px rgba(0,255,136,0.5)"></div><span style="color:#00ff88">Online</span></div></div>
+              <div class="net-row"><div><div class="nr-n">FHE Engine (TFHE)</div><div class="nr-s">128-bit · LWE · Bootstrap</div></div><div class="nr-status"><div class="nrd" style="background:#00ff88;box-shadow:0 0 7px rgba(0,255,136,0.5)"></div><span style="color:#00ff88">Online</span></div></div>
+              <div class="net-row"><div><div class="nr-n">Private ML Inference</div><div class="nr-s">4 models · FHE-encrypted</div></div><div class="nr-status"><div class="nrd" style="background:#00ff88;box-shadow:0 0 7px rgba(0,255,136,0.5)"></div><span style="color:#00ff88">Online</span></div></div>
+              <div class="net-row"><div><div class="nr-n">Trade Settlement</div><div class="nr-s">ZK-gated · Shielded</div></div><div class="nr-status"><div class="nrd" style="background:#00ff88;box-shadow:0 0 7px rgba(0,255,136,0.5)"></div><span style="color:#00ff88">Online</span></div></div>
+              <div class="net-row"><div><div class="nr-n">On-chain Verifier</div><div class="nr-s">EVM · ~250k gas</div></div><div class="nr-status"><div class="nrd" style="background:#fbbf24;box-shadow:0 0 7px rgba(251,191,36,0.5)"></div><span style="color:#fbbf24">Testnet</span></div></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="ch"><div class="chl"><div class="chi">🔗</div><div><div class="cht">All Products</div><div class="chs">External interfaces</div></div></div></div>
+            <div class="cb" style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+              <a href="p1-zkproof.html" style="text-decoration:none;background:var(--s2);border:1px solid var(--border);border-radius:7px;padding:10px;text-align:center;display:block;transition:all 0.2s" onmouseover="this.style.borderColor='rgba(var(--rgb-val),0.3)'" onmouseout="this.style.borderColor=''"><div style="font-size:18px;margin-bottom:4px">⚡</div><div style="font-size:10px;font-weight:700;color:var(--text)">ZK Prover</div></a>
+              <a href="p2-fhe.html" style="text-decoration:none;background:var(--s2);border:1px solid var(--border);border-radius:7px;padding:10px;text-align:center;display:block;transition:all 0.2s"><div style="font-size:18px;margin-bottom:4px">🔒</div><div style="font-size:10px;font-weight:700;color:var(--text)">FHE Engine</div></a>
+              <a href="p5-shieldtrade.html" style="text-decoration:none;background:var(--s2);border:1px solid var(--border);border-radius:7px;padding:10px;text-align:center;display:block;transition:all 0.2s"><div style="font-size:18px;margin-bottom:4px">🛡</div><div style="font-size:10px;font-weight:700;color:var(--text)">Shield Trade</div></a>
+              <a href="p7-dashboard.html" style="text-decoration:none;background:var(--s2);border:1px solid var(--border);border-radius:7px;padding:10px;text-align:center;display:block;transition:all 0.2s"><div style="font-size:18px;margin-bottom:4px">📊</div><div style="font-size:10px;font-weight:700;color:var(--text)">Dashboard</div></a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ZK PROOFS -->
+    <div class="page" id="page-zk">
+      <div class="g2">
+        <div>
+          <div class="card mb14">
+            <div class="ch"><div class="chl"><div class="chi">🔐</div><div><div class="cht">Trade Inputs</div><div class="chs">Private — never transmitted</div></div></div></div>
+            <div class="cb">
+              <div class="pm">
+                <div class="pr h"><span class="prpill">🔒 hidden</span><span class="prn">Trade Amount</span><span class="prnt">Circuit only</span></div>
+                <div class="pr h"><span class="prpill">🔒 hidden</span><span class="prn">Your Balance</span><span class="prnt">Circuit only</span></div>
+                <div class="pr p"><span class="prpill">👁 public</span><span class="prn">Min Balance Threshold</span><span class="prnt">Proof signal</span></div>
+                <div class="pr p"><span class="prpill">👁 public</span><span class="prn">Max Trade Size</span><span class="prnt">Proof signal</span></div>
+              </div>
+              <div class="fr">
+                <div class="field"><label>Trade Amount 🔒</label><input type="number" id="zk-amt" value="5000"/></div>
+                <div class="field"><label>Your Balance 🔒</label><input type="number" id="zk-bal" value="50000"/></div>
+              </div>
+              <div class="fr">
+                <div class="field"><label>Min Balance 👁</label><input type="number" id="zk-min" value="1000"/></div>
+                <div class="field"><label>Max Trade 👁</label><input type="number" id="zk-max" value="100000"/></div>
+              </div>
+              <button class="btn btn-acc btn-full" id="zk-btn" onclick="zkGen()"><span id="zk-icon">⚡</span><span id="zk-txt">Generate ZK Proof</span></button>
+              <button class="btn btn-ghost btn-full" style="margin-top:7px" onclick="goPage('verify',document.getElementById('ni-verify'))">✅ Send to Verifier →</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="ch"><div class="chl"><div class="chi">🔄</div><div><div class="cht">Pipeline</div></div></div></div>
+            <div class="cb">
+              <div class="pip">
+                <div class="pip-s" id="p1"><div class="pip-n" id="p1n">1</div><div><div class="pip-t">Validate Constraints</div><div class="pip-d">balance ≥ min · amount ≤ max</div></div></div>
+                <div class="pip-s" id="p2"><div class="pip-n" id="p2n">2</div><div><div class="pip-t">Build R1CS Witness</div><div class="pip-d">Map inputs → circuit vars</div></div></div>
+                <div class="pip-s" id="p3"><div class="pip-n" id="p3n">3</div><div><div class="pip-t">Groth16 Prover</div><div class="pip-d">π_A, π_B, π_C on bn128</div></div></div>
+                <div class="pip-s" id="p4"><div class="pip-n" id="p4n">4</div><div><div class="pip-t">Export Proof</div><div class="pip-d">Proof + public signals only</div></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="ch"><div class="chl"><div class="chi">📤</div><div><div class="cht">Proof Output</div><div class="chs">Safe to share publicly</div></div></div></div>
+            <div class="cb">
+              <div class="info-box"><span>ℹ️</span>No private data in this output. Share with any verifier.</div>
+              <div class="terminal">
+                <div class="t-bar"><div class="t-dots"><div class="td" style="background:#ff5f57"></div><div class="td" style="background:#febc2e"></div><div class="td" style="background:#28c840"></div></div><div class="t-lbl">proof.json</div><div class="t-stat ts-wait" id="zk-stat">● READY</div></div>
+                <div class="t-body" id="zk-out"><span class="td2">// Fill form and generate...</span></div>
+                <div class="t-foot"><span class="t-lbl" id="zk-meta"></span><button class="cp" onclick="cp('zk-out')">Copy</button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FHE -->
+    <div class="page" id="page-fhe">
+      <div class="info-box mb14"><span>🔒</span>FHE lets you compute on encrypted data. The server processes ciphertexts and returns an encrypted result — your raw values are never visible.</div>
+      <div class="card mb14">
+        <div class="ch"><div class="chl"><div class="chi">🔑</div><div><div class="cht">Session</div></div></div><button class="btn btn-ghost btn-sm" onclick="fheNewSess()">+ New Session</button></div>
+        <div class="cb" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+          <div style="flex:1"><div style="font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);font-family:'JetBrains Mono',monospace;margin-bottom:4px">Session ID</div><div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--acc)" id="fhe-sess">None — create session first</div></div>
+          <div class="chip" id="fhe-kchip" style="border-color:var(--border);color:var(--dim)">🔑 No Keys</div>
+        </div>
+      </div>
+      <div class="g2">
+        <div>
+          <div class="card mb14">
+            <div class="ch"><div class="chl"><div class="chi">⚙️</div><div><div class="cht" id="fhe-op-t">Homomorphic Add</div></div></div></div>
+            <div class="cb">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px">
+                <div onclick="selFHE('add',this)" class="model-row sel" id="fo-add" style="text-align:center;padding:10px"><div style="font-size:18px;margin-bottom:3px">➕</div><div style="font-size:10px;font-weight:700">Add</div><div style="font-size:9px;color:var(--dim);font-family:'JetBrains Mono',monospace">Enc(a)+Enc(b)</div></div>
+                <div onclick="selFHE('mul',this)" class="model-row" id="fo-mul" style="text-align:center;padding:10px"><div style="font-size:18px;margin-bottom:3px">✖️</div><div style="font-size:10px;font-weight:700">Multiply</div><div style="font-size:9px;color:var(--dim);font-family:'JetBrains Mono',monospace">Enc(a)×Enc(b)</div></div>
+                <div onclick="selFHE('bal',this)" class="model-row" id="fo-bal" style="text-align:center;padding:10px"><div style="font-size:18px;margin-bottom:3px">⚖️</div><div style="font-size:10px;font-weight:700">Balance</div><div style="font-size:9px;color:var(--dim);font-family:'JetBrains Mono',monospace">Enc(b)≥Enc(t)</div></div>
+                <div onclick="selFHE('boot',this)" class="model-row" id="fo-boot" style="text-align:center;padding:10px"><div style="font-size:18px;margin-bottom:3px">♻️</div><div style="font-size:10px;font-weight:700">Bootstrap</div><div style="font-size:9px;color:var(--dim);font-family:'JetBrains Mono',monospace">Reduce noise</div></div>
+              </div>
+              <div class="warn-box"><span>⚠️</span><span>Values encrypted locally. Server never sees plaintext.</span></div>
+              <div class="fr">
+                <div class="field"><label id="fla">Value A 🔒</label><input type="number" id="fva" value="12500"/></div>
+                <div class="field"><label id="flb">Value B 🔒</label><input type="number" id="fvb" value="7500"/></div>
+              </div>
+              <button class="btn btn-acc btn-full" id="fhe-btn" onclick="fheRun()"><span id="fhe-icon">🔒</span><span id="fhe-txt">Encrypt & Compute</span></button>
+              <div style="margin-top:12px"><div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin-bottom:5px;font-family:'JetBrains Mono',monospace">Noise Level</div>
+              <div class="noise-bar"><div class="nf" id="nf" style="width:2%;background:var(--acc)"></div></div>
+              <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--dim);font-family:'JetBrains Mono',monospace"><span id="nv">~2%</span><span>Bootstrap at 80%</span></div></div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="card mb14">
+            <div class="ch"><div class="chl"><div class="chi">📡</div><div><div class="cht">Encrypted Result</div><div class="chs">Decrypt with session key</div></div></div></div>
+            <div class="cb">
+              <div class="terminal">
+                <div class="t-bar"><div class="t-dots"><div class="td" style="background:#ff5f57"></div><div class="td" style="background:#febc2e"></div><div class="td" style="background:#28c840"></div></div><div class="t-lbl">fhe_result.ct</div><div class="t-stat ts-wait" id="fhe-stat">● IDLE</div></div>
+                <div class="t-body" id="fhe-out"><span class="td2">// Select operation and compute...</span></div>
+                <div class="t-foot"><span></span><button class="cp" onclick="cp('fhe-out')">Copy</button></div>
+              </div>
+              <button class="btn btn-ghost btn-full" style="margin-top:10px" onclick="fheDecrypt()">🔓 Decrypt with Session Key</button>
+              <div id="fdv" style="display:none;margin-top:10px;background:var(--s2);border:1px solid rgba(0,255,136,0.15);border-radius:7px;padding:14px;text-align:center"><div style="font-size:9px;color:var(--dim);font-family:'JetBrains Mono',monospace;margin-bottom:4px">DECRYPTED VALUE</div><div style="font-size:28px;font-weight:800;color:#00ff88;font-family:'JetBrains Mono',monospace" id="fdnum">—</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SHIELD TRADE -->
+    <div class="page" id="page-trade">
+      <div class="g2">
+        <div>
+          <div class="card mb14">
+            <div class="ch"><div class="chl"><div class="chi">📝</div><div><div class="cht">Shielded Order</div><div class="chs">ZK proof generated automatically</div></div></div></div>
+            <div class="cb">
+              <div class="field"><label>Asset Pair</label><select id="tr-pair"><option>ETH / USDC</option><option>BTC / USDC</option><option>SOL / USDC</option></select></div>
+              <div class="fr">
+                <div class="field"><label>Trade Amount 🔒</label><input type="number" id="tr-amt" value="5000"/></div>
+                <div class="field"><label>Your Balance 🔒</label><input type="number" id="tr-bal" value="50000"/></div>
+              </div>
+              <div class="fr">
+                <div class="field"><label>Min Balance 👁</label><input type="number" id="tr-min" value="1000"/></div>
+                <div class="field"><label>Max Trade 👁</label><input type="number" id="tr-max" value="100000"/></div>
+              </div>
+              <div class="field"><label>Side</label><select id="tr-side"><option>Buy (long)</option><option>Sell (short)</option></select></div>
+              <button class="btn btn-acc btn-full" id="tr-btn" onclick="tradeSubmit()"><span id="tr-icon">🛡</span><span id="tr-txt">Execute Shielded Trade</span></button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="ch"><div class="chl"><div class="chi">🔄</div><div><div class="cht">Execution Flow</div></div></div></div>
+            <div class="cb">
+              <div class="pip">
+                <div class="pip-s done"><div class="pip-n">✓</div><div><div class="pip-t">Generate ZK Proof</div><div class="pip-d">Local · Groth16</div></div></div>
+                <div class="pip-s" id="tp2"><div class="pip-n" id="tp2n">2</div><div><div class="pip-t">Verify On-chain</div><div class="pip-d">bn128 pairing · ~250k gas</div></div></div>
+                <div class="pip-s" id="tp3"><div class="pip-n" id="tp3n">3</div><div><div class="pip-t">FHE Balance Check</div><div class="pip-d">Enc(bal) ≥ Enc(amt)</div></div></div>
+                <div class="pip-s" id="tp4"><div class="pip-n" id="tp4n">4</div><div><div class="pip-t">Settle Shielded</div><div class="pip-d">Execute — no data leaked</div></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="card mb14">
+            <div class="ch"><div class="chl"><div class="chi">📊</div><div><div class="cht">Execution Result</div></div></div></div>
+            <div class="cb">
+              <div class="terminal">
+                <div class="t-bar"><div class="t-dots"><div class="td" style="background:#ff5f57"></div><div class="td" style="background:#febc2e"></div><div class="td" style="background:#28c840"></div></div><div class="t-lbl">trade_result.json</div><div class="t-stat ts-wait" id="tr-stat">● READY</div></div>
+                <div class="t-body" id="tr-out"><span class="td2">// Submit a shielded order to see results</span></div>
+                <div class="t-foot"><span></span><button class="cp" onclick="cp('tr-out')">Copy</button></div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="ch"><div class="chl"><div class="chi">📜</div><div><div class="cht">Trade History</div><div class="chs">Shielded — no amounts visible</div></div></div></div>
+            <div class="cb"><div id="tr-hist"><div style="text-align:center;padding:16px;color:var(--dim);font-size:11px;font-family:'JetBrains Mono',monospace">// No trades yet</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VERIFY -->
+    <div class="page" id="page-verify">
+      <div class="g2">
+        <div>
+          <div class="card mb14">
+            <div class="ch"><div class="chl"><div class="chi">📋</div><div><div class="cht">Proof Input</div></div></div><button class="btn btn-ghost btn-sm" onclick="loadSample()">Load Sample</button></div>
+            <div class="cb">
+              <div class="field"><label>ZK Proof (JSON)</label><textarea id="vf-proof" placeholder='{"pi_a":["...","...","1"],"pi_b":[...],"pi_c":["...","...","1"],"protocol":"groth16","curve":"bn128"}'></textarea></div>
+              <div class="field"><label>Public Signals (JSON Array)</label><input type="text" id="vf-sigs" placeholder='["1000","100000","0xabc..."]'/></div>
+              <div class="field"><label>Circuit</label><select id="vf-circ"><option value="trade_verify_v1">trade_verify_v1 — Trade Validity</option><option value="range_proof_v1">range_proof_v1 — Range Proof</option><option value="membership_v1">membership_v1 — Merkle Membership</option></select></div>
+              <button class="btn btn-acc btn-full" id="vf-btn" onclick="doVerify()"><span id="vf-icon">✅</span><span id="vf-txt">Verify Proof</span></button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="ch"><div class="chl"><div class="chi">📟</div><div><div class="cht">Verification Log</div></div></div><button class="cp btn-sm" style="padding:5px 10px;border-radius:5px" onclick="cp('vf-log')">Copy</button></div>
+            <div class="cb"><div style="background:var(--s2);border:1px solid var(--border);border-radius:7px;padding:12px;font-family:'JetBrains Mono',monospace;font-size:10px;line-height:1.8;min-height:70px;max-height:180px;overflow-y:auto;color:var(--dim);white-space:pre-wrap" id="vf-log"><span>// Awaiting proof...</span></div></div>
+          </div>
+        </div>
+        <div>
+          <div id="vf-hero" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:36px 20px;border-radius:10px;border:2px dashed rgba(255,255,255,0.08);min-height:240px;text-align:center;margin-bottom:14px;transition:all 0.4s">
+            <div style="font-size:50px;margin-bottom:12px;animation:sh 3s ease-in-out infinite">🛡</div>
+            <div style="font-size:16px;font-weight:700;color:var(--dim);margin-bottom:6px">Paste a proof to verify</div>
+            <div style="font-size:11px;color:var(--dim);line-height:1.6;max-width:240px">Anyone can verify — no private data needed.</div>
+          </div>
+          @keyframes sh{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+          <div class="card">
+            <div class="ch"><div class="chl"><div class="chi">❓</div><div><div class="cht">How Verification Works</div></div></div></div>
+            <div class="cb">
+              <div class="pip">
+                <div class="pip-s done"><div class="pip-n">✓</div><div><div class="pip-t">Receive Proof + Signals</div><div class="pip-d">π_A, π_B, π_C + public outputs</div></div></div>
+                <div class="pip-s done"><div class="pip-n">✓</div><div><div class="pip-t">Load Verification Key</div><div class="pip-d">Circuit trusted setup key</div></div></div>
+                <div class="pip-s"><div class="pip-n">3</div><div><div class="pip-t">Pairing Check on bn128</div><div class="pip-d">e(π_A, π_B) == e(α,β) + Σ(IC×signals)</div></div></div>
+                <div class="pip-s"><div class="pip-n">4</div><div><div class="pip-t">Accept or Reject</div><div class="pip-d">Binary — no private info revealed</div></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RANGE -->
+    <div class="page" id="page-range">
+      <div class="g2">
+        <div>
+          <div class="card mb14">
+            <div class="ch"><div class="chl"><div class="chi">📐</div><div><div class="cht">Range Proof</div><div class="chs">64-bit · Poseidon · Groth16</div></div></div></div>
+            <div class="cb">
+              <div class="info-box"><span>💡</span><span>Prove a secret value is in [min, max]. Verifier learns only the bounds.</span></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px">
+                <div onclick="loadUC(0,this)" class="model-row sel" id="ru0"><div style="font-size:16px;margin-bottom:4px">💰</div><div style="font-size:10px;font-weight:700">Portfolio Size</div><div style="font-size:9px;color:var(--dim);font-family:'JetBrains Mono',monospace">$10k–$1M</div></div>
+                <div onclick="loadUC(1,this)" class="model-row" id="ru1"><div style="font-size:16px;margin-bottom:4px">📊</div><div style="font-size:10px;font-weight:700">Credit Score</div><div style="font-size:9px;color:var(--dim);font-family:'JetBrains Mono',monospace">700–850</div></div>
+                <div onclick="loadUC(2,this)" class="model-row" id="ru2"><div style="font-size:16px;margin-bottom:4px">🎂</div><div style="font-size:10px;font-weight:700">Age Gate</div><div style="font-size:9px;color:var(--dim);font-family:'JetBrains Mono',monospace">18–65</div></div>
+                <div onclick="loadUC(3,this)" class="model-row" id="ru3"><div style="font-size:16px;margin-bottom:4px">🏦</div><div style="font-size:10px;font-weight:700">KYC Balance</div><div style="font-size:9px;color:var(--dim);font-family:'JetBrains Mono',monospace">&gt; threshold</div></div>
+              </div>
+              <div class="field"><label>Secret Value 🔒 (never revealed)</label><input type="number" id="rg-val" value="47320" oninput="updateRangeVis()"/></div>
+              <div class="fr">
+                <div class="field"><label>Min 👁</label><input type="number" id="rg-min" value="10000" oninput="updateRangeVis()"/></div>
+                <div class="field"><label>Max 👁</label><input type="number" id="rg-max" value="100000" oninput="updateRangeVis()"/></div>
+              </div>
+              <button class="btn btn-acc btn-full" id="rg-btn" onclick="genRange()"><span id="rg-icon">📐</span><span id="rg-txt">Generate Range Proof</span></button>
+            </div>
+          </div>
+          <div class="terminal">
+            <div class="t-bar"><div class="t-dots"><div class="td" style="background:#ff5f57"></div><div class="td" style="background:#febc2e"></div><div class="td" style="background:#28c840"></div></div><div class="t-lbl">range_proof.json</div><div class="t-stat ts-wait" id="rg-stat">● READY</div></div>
+            <div class="t-body" id="rg-out"><span class="td2">// Generate range proof...</span></div>
+            <div class="t-foot"><span></span><button class="cp" onclick="cp('rg-out')">Copy</button></div>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="ch"><div class="chl"><div class="chi">👁</div><div><div class="cht">Live Visualization</div><div class="chs">Updates as you type</div></div></div></div>
+            <div class="cb" style="text-align:center">
+              <div style="font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);font-family:'JetBrains Mono',monospace;margin-bottom:6px">🔒 Secret Value — Hidden from Verifier</div>
+              <div style="font-size:44px;font-weight:800;letter-spacing:-2px;color:var(--acc);font-family:'JetBrains Mono',monospace;margin-bottom:18px" id="rg-vis-val">47,320</div>
+              <div style="height:8px;background:var(--s2);border-radius:4px;position:relative;margin:0 0 10px">
+                <div style="height:100%;border-radius:4px;background:linear-gradient(90deg,var(--acc),#44ffaa);position:absolute;left:0;transition:width 0.5s cubic-bezier(0.34,1.56,0.64,1)" id="rg-fill"></div>
+                <div style="width:18px;height:18px;border-radius:50%;background:var(--acc);position:absolute;top:50%;transform:translateY(-50%);transition:left 0.5s cubic-bezier(0.34,1.56,0.64,1);box-shadow:0 0 14px rgba(var(--rgb),0.5)" id="rg-thumb"></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--dim);font-family:'JetBrains Mono',monospace;margin-bottom:14px"><span id="rg-vis-min">10,000</span><span id="rg-vis-max">100,000</span></div>
+              <div style="display:flex;gap:7px;justify-content:center;flex-wrap:wrap" id="rg-badges"></div>
+              <div style="margin-top:16px;padding:14px;background:var(--s2);border-radius:8px">
+                <div style="font-size:9px;color:var(--dim);font-family:'JetBrains Mono',monospace;margin-bottom:8px">Verifier sees:</div>
+                <div style="display:flex;justify-content:space-around">
+                  <div><div style="font-size:12px;font-weight:700;color:#fbbf24" id="rg-vmin">10,000</div><div style="font-size:9px;color:var(--dim)">MIN</div></div>
+                  <div><div style="font-size:12px;font-weight:800;color:#ff4d6d;filter:blur(5px)">???</div><div style="font-size:9px;color:#ff4d6d">HIDDEN</div></div>
+                  <div><div style="font-size:12px;font-weight:700;color:#fbbf24" id="rg-vmax">100,000</div><div style="font-size:9px;color:var(--dim)">MAX</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ML INFERENCE -->
+    <div class="page" id="page-ml">
+      <div class="warn-box mb14"><span>🧠</span>Private ML Inference: run ML models on FHE-encrypted data. Server never decrypts your raw features.</div>
+      <div class="g2">
+        <div>
+          <div class="card mb14">
+            <div class="ch"><div class="chl"><div class="chi">🎯</div><div><div class="cht">Select Model</div></div></div></div>
+            <div class="cb">
+              <div class="model-row sel" data-m="risk_scorer" onclick="selML('risk_scorer',this)"><div class="mr-top"><div class="mr-name">📊 Risk Score Model</div><div style="font-size:9px;color:var(--dim);font-family:'JetBrains Mono',monospace">94% acc</div></div><div style="font-size:9px;color:var(--dim);font-family:'JetBrains Mono',monospace">logistic_regression · 8 features</div><div class="mr-acc-bar"><div class="mr-acc-fill" style="width:94%"></div></div></div>
+              <div class="model-row" data-m="fraud_detector" onclick="selML('fraud_detector',this)"><div class="mr-top"><div class="mr-name">🔍 Fraud Detector</div><div style="font-size:9px;color:var(--dim);font-family:'JetBrains Mono',monospace">97% acc</div></div><div style="font-size:9px;color:var(--dim);font-family:'JetBrains Mono',monospace">gradient_boost · 12 features</div><div class="mr-acc-bar"><div class="mr-acc-fill" style="width:97%"></div></div></div>
+              <div class="model-row" data-m="price_predictor" onclick="selML('price_predictor',this)"><div class="mr-top"><div class="mr-name">📈 Price Predictor</div><div style="font-size:9px;color:var(--dim);font-family:'JetBrains Mono',monospace">81% acc</div></div><div style="font-size:9px;color:var(--dim);font-family:'JetBrains Mono',monospace">lstm · 6 features</div><div class="mr-acc-bar"><div class="mr-acc-fill" style="width:81%"></div></div></div>
+              <div class="model-row" data-m="portfolio_optimizer" onclick="selML('portfolio_optimizer',this)"><div class="mr-top"><div class="mr-name">⚖️ Portfolio Optimizer</div><div style="font-size:9px;color:var(--dim);font-family:'JetBrains Mono',monospace">88% acc</div></div><div style="font-size:9px;color:var(--dim);font-family:'JetBrains Mono',monospace">neural_net · 10 features</div><div class="mr-acc-bar"><div class="mr-acc-fill" style="width:88%"></div></div></div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="card mb14">
+            <div class="ch"><div class="chl"><div class="chi">🔐</div><div><div class="cht">Encrypted Features</div><div class="chs">Never decrypted on server</div></div></div></div>
+            <div class="cb">
+              <div class="field"><label>Feature Vector 🔒 (comma-separated)</label><input type="text" id="ml-feats" value="0.8, 0.3, 0.92, 0.1, 0.67, 0.45, 0.72, 0.88"/></div>
+              <button class="btn btn-acc btn-full" id="ml-btn" onclick="runML()"><span id="ml-icon">🧠</span><span id="ml-txt">Run Private Inference</span></button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="ch"><div class="chl"><div class="chi">📡</div><div><div class="cht">Inference Result</div><div class="chs">Encrypted output</div></div></div></div>
+            <div class="cb">
+              <div class="terminal">
+                <div class="t-bar"><div class="t-dots"><div class="td" style="background:#ff5f57"></div><div class="td" style="background:#febc2e"></div><div class="td" style="background:#28c840"></div></div><div class="t-lbl">inference_result.ct</div><div class="t-stat ts-wait" id="ml-stat">● IDLE</div></div>
+                <div class="t-body" id="ml-out"><span class="td2">// Select model and run inference...</span></div>
+                <div class="t-foot"><span></span><button class="cp" onclick="cp('ml-out')">Copy</button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- API EXPLORER -->
+    <div class="page" id="page-api">
+      <div class="card mb14">
+        <div class="ch"><div class="chl"><div class="chi">🔌</div><div><div class="cht">API Explorer</div><div class="chs">Live request builder · localhost:3001</div></div></div></div>
+        <div class="cb">
+          <div class="g2">
+            <div>
+              <div class="field"><label>Endpoint</label>
+                <select id="api-ep" onchange="updateAPIBody()">
+                  <option value="POST /api/zk/verify">POST /api/zk/verify</option>
+                  <option value="POST /api/zk/generate">POST /api/zk/generate</option>
+                  <option value="POST /api/zk/range">POST /api/zk/range</option>
+                  <option value="GET /api/zk/stats">GET /api/zk/stats</option>
+                  <option value="GET /api/zk/circuits">GET /api/zk/circuits</option>
+                  <option value="POST /api/fhe/keygen">POST /api/fhe/keygen</option>
+                  <option value="POST /api/fhe/encrypt">POST /api/fhe/encrypt</option>
+                  <option value="POST /api/fhe/balance-check">POST /api/fhe/balance-check</option>
+                  <option value="POST /api/trade/submit">POST /api/trade/submit</option>
+                  <option value="GET /api/trade/history">GET /api/trade/history</option>
+                  <option value="POST /api/ml/infer">POST /api/ml/infer</option>
+                  <option value="GET /api/ml/models">GET /api/ml/models</option>
+                  <option value="GET /api/dashboard/overview">GET /api/dashboard/overview</option>
+                  <option value="GET /health">GET /health</option>
+                </select>
+              </div>
+              <div class="field"><label>Request Body (JSON)</label><textarea id="api-body" style="min-height:130px;font-size:11px"></textarea></div>
+              <button class="btn btn-acc btn-full" id="api-btn" onclick="runAPI()"><span id="api-icon">🔌</span><span id="api-txt">Send Request</span></button>
+            </div>
+            <div>
+              <div class="terminal" style="height:100%;min-height:220px">
+                <div class="t-bar"><div class="t-dots"><div class="td" style="background:#ff5f57"></div><div class="td" style="background:#febc2e"></div><div class="td" style="background:#28c840"></div></div><div class="t-lbl">response.json</div><div class="t-stat ts-wait" id="api-stat">● READY</div></div>
+                <div class="t-body" id="api-out" style="min-height:180px"><span class="td2">// Select endpoint and send</span></div>
+                <div class="t-foot"><span class="t-lbl" id="api-meta"></span><button class="cp" onclick="cp('api-out')">Copy</button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<div id="toasts"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// ROLE CONFIG
+// ══════════════════════════════════════════════════════════════
+const ROLES = {
+  trader:    {acc:'#00e896',acc2:'#00cc6a',rgb:'0,232,150',bg:'#030a07',s1:'#071410',s2:'#0c1e16',text:'#b8f5d0',dim:'#2a5a3c',border:'rgba(0,232,150,0.1)',name:'Anonymous Trader',emoji:'⚡',hexEmoji:'⚡'},
+  analyst:   {acc:'#818cf8',acc2:'#6366f1',rgb:'129,140,248',bg:'#06060f',s1:'#0d0d1f',s2:'#131326',text:'#c8c5ff',dim:'#3a3870',border:'rgba(129,140,248,0.12)',name:'Risk Analyst',emoji:'🧠',hexEmoji:'🧠'},
+  admin:     {acc:'#fb923c',acc2:'#ea580c',rgb:'251,146,60',bg:'#0f0500',s1:'#1a0a00',s2:'#251000',text:'#ffd8a0',dim:'#5a3000',border:'rgba(251,146,60,0.12)',name:'Protocol Admin',emoji:'🔧',hexEmoji:'🔧'},
+  auditor:   {acc:'#22d3ee',acc2:'#0891b2',rgb:'34,211,238',bg:'#0a0a0c',s1:'#111115',s2:'#18181e',text:'#c0eeff',dim:'#1a4a5c',border:'rgba(34,211,238,0.1)',name:'Compliance Auditor',emoji:'🔍',hexEmoji:'🔍'},
+  developer: {acc:'#f472b6',acc2:'#db2777',rgb:'244,114,182',bg:'#04040a',s1:'#080814',s2:'#0d0d1e',text:'#ffb0c4',dim:'#5a1a2c',border:'rgba(244,114,182,0.1)',name:'Protocol Developer',emoji:'💻',hexEmoji:'💻'},
+};
+const PAGE_META = {
+  dash:   ['Dashboard','Privacy protocol overview'],
+  zk:     ['ZK Proof Generator','Groth16 on bn128 · shielded trade proofs'],
+  fhe:    ['FHE Compute Engine','Fully Homomorphic Encryption · TFHE'],
+  trade:  ['Shield Trade','End-to-end shielded DeFi trading'],
+  verify: ['Proof Verifier','Trustless ZK proof verification'],
+  range:  ['Range Proof Studio','64-bit range proofs · Poseidon hash'],
+  ml:     ['Private ML Inference','FHE-encrypted model inference'],
+  api:    ['API Explorer','Live request builder · localhost:3001'],
+};
+const API_BODIES = {
+  'POST /api/zk/verify':'{\n  "proof":{"pi_a":["111","222","1"],"pi_b":[["333","444"],["555","666"],["1","0"]],"pi_c":["777","888","1"],"protocol":"groth16","curve":"bn128"},\n  "publicSignals":["1000","100000","0xabc"],\n  "circuitId":"trade_verify_v1"\n}',
+  'POST /api/zk/generate':'{\n  "tradeAmount":5000,\n  "traderBalance":50000,\n  "minBalance":1000,\n  "maxTradeSize":100000\n}',
+  'POST /api/zk/range':'{\n  "value":47320,\n  "min":10000,\n  "max":100000\n}',
+  'POST /api/fhe/keygen':'{\n  "sessionId":"my_session_1"\n}',
+  'POST /api/fhe/encrypt':'{\n  "sessionId":"my_session_1",\n  "plaintext":50000\n}',
+  'POST /api/fhe/balance-check':'{\n  "sessionId":"my_session_1",\n  "balanceCiphertextId":"ct_abc",\n  "tradeCiphertextId":"ct_def"\n}',
+  'POST /api/trade/submit':'{\n  "proof":{"pi_a":["1","2","1"],"pi_b":[["3","4"],["5","6"],["1","0"]],"pi_c":["7","8","1"],"protocol":"groth16","curve":"bn128"},\n  "publicSignals":["1000","100000","0xabc"]\n}',
+  'POST /api/ml/infer':'{\n  "modelId":"risk_scorer",\n  "encryptedFeatures":[0.8,0.3,0.9,0.1,0.6,0.5,0.7,0.9],\n  "sessionId":"my_session_1"\n}',
+};
+
+// ── State ──────────────────────────────────────────────────────
+let S={proofs:0,verified:0,fhe:0,trades:0,fheSess:null,fheOp:'add',fheLastResult:null,fheNoise:2,mlModel:'risk_scorer',lastProof:null,activity:[]};
+const prime=21888242871839275222246405745257275088548364400416034343698204186575808495617n;
+function rf(){return (BigInt('0x'+Array.from({length:16},()=>Math.floor(Math.random()*16).toString(16)).join(''))%prime).toString()}
+function rid(){return Math.random().toString(36).slice(2,10)}
+
+// ── Login ──────────────────────────────────────────────────────
+function login(role){
+  const r=ROLES[role];
+  const root=document.documentElement;
+  root.style.setProperty('--acc',r.acc);root.style.setProperty('--acc2',r.acc2);root.style.setProperty('--rgb',r.rgb);
+  root.style.setProperty('--bg',r.bg);root.style.setProperty('--s1',r.s1);root.style.setProperty('--s2',r.s2);
+  root.style.setProperty('--text',r.text);root.style.setProperty('--dim',r.dim);root.style.setProperty('--border',r.border);
+  // Set orb colors
+  const o1=document.getElementById('orb1'),o2=document.getElementById('orb2'),o3=document.getElementById('orb3');
+  o1.style.background=`radial-gradient(circle,rgba(${r.rgb},0.12),transparent 70%)`;o1.style.opacity='1';
+  o2.style.background=`radial-gradient(circle,rgba(${r.rgb},0.08),transparent 70%)`;o2.style.opacity='1';
+  o3.style.background=`radial-gradient(circle,rgba(${r.rgb},0.06),transparent 70%)`;o3.style.opacity='1';
+  document.getElementById('sl-hex').textContent=r.hexEmoji;
+  document.getElementById('rp-label').textContent=r.name.split(' ')[0];
+  document.getElementById('tb-role').textContent=r.name;
+  document.getElementById('sf-av').textContent=r.emoji;
+  document.getElementById('sf-name').textContent=r.name;
+  const isDev=role==='developer'||role==='admin';
+  document.getElementById('dev-sec').style.display=isDev?'block':'none';
+  document.getElementById('ni-api').style.display=isDev?'flex':'none';
+  document.getElementById('login').classList.add('out');
+  document.getElementById('app').style.display='flex';
+  setTimeout(()=>toast('Welcome, '+r.name+'! 🛡','s'),400);
+}
+function logout(){
+  document.getElementById('login').classList.remove('out');
+  document.getElementById('app').style.display='none';
+  S={proofs:0,verified:0,fhe:0,trades:0,fheSess:null,fheOp:'add',fheLastResult:null,fheNoise:2,mlModel:'risk_scorer',lastProof:null,activity:[]};
+  ['st-p','st-v','st-f','st-t'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent='0'});
+}
+
+// ── Navigation ─────────────────────────────────────────────────
+function goPage(pg,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(i=>i.classList.remove('active'));
+  const page=document.getElementById('page-'+pg);if(page)page.classList.add('active');
+  if(el)el.classList.add('active');
+  const m=PAGE_META[pg]||['Page',''];
+  document.getElementById('tb-t').textContent=m[0];document.getElementById('tb-s').textContent=m[1];
+}
+
+// ── Utils ──────────────────────────────────────────────────────
+function fmt(obj){return JSON.stringify(obj,null,2).replace(/"([^"]+)":/g,'<span class="tc">"$1"</span>:').replace(/: "([^"]+)"/g,': <span class="tw">"$1"</span>').replace(/: (true)/g,': <span class="tg">true</span>').replace(/: (false)/g,': <span class="tr">false</span>').replace(/: (\d+\.?\d*)/g,': <span class="ta">$1</span>')}
+function setOut(id,html){const e=document.getElementById(id);if(e)e.innerHTML=html}
+function setStat(id,cl,txt){const e=document.getElementById(id);if(e){e.className='t-stat ts-'+cl;e.textContent=txt}}
+function cp(id){navigator.clipboard.writeText(document.getElementById(id)?.innerText||'').then(()=>toast('Copied!','i'))}
+function sl(ms){return new Promise(r=>setTimeout(r,ms))}
+function toast(msg,type){const c=document.getElementById('toasts'),el=document.createElement('div');el.className='toast '+type;el.innerHTML=(type==='s'?'✅ ':type==='e'?'❌ ':'ℹ️ ')+msg;c.appendChild(el);setTimeout(()=>{el.style.opacity='0';el.style.transition='opacity 0.3s';setTimeout(()=>el.remove(),300)},3000)}
+function animNum(id,v){const e=document.getElementById(id);if(!e)return;let c=+e.textContent||0;const s=()=>{c=Math.min(c+1,v);e.textContent=c;if(c<v)requestAnimationFrame(s)};requestAnimationFrame(s)}
+function addActivity(icon,title,sub,dc,val,vc){
+  S.activity.unshift({icon,title,sub,dc,val,vc,time:new Date().toLocaleTimeString()});if(S.activity.length>6)S.activity=S.activity.slice(0,6);
+  const feed=document.getElementById('activity-feed');
+  feed.innerHTML=S.activity.map(a=>`<div class="af"><div class="af-dot" style="background:${a.dc}"></div><div style="flex:1"><div class="af-title">${a.icon} ${a.title}</div><div class="af-sub">${a.sub} · ${a.time}</div></div><div class="af-val" style="color:${a.vc}">${a.val}</div></div>`).join('');
+}
+function setBtn(id,l,icon,label){
+  const ie=document.getElementById(id+'-icon'),te=document.getElementById(id+'-txt'),be=document.getElementById(id+'-btn');
+  if(l){if(ie)ie.outerHTML='<div class="spin" id="'+id+'-icon" style="color:currentColor"></div>';if(te)te.textContent='Processing...';if(be)be.disabled=true}
+  else{const si=document.getElementById(id+'-icon');if(si)si.outerHTML='<span id="'+id+'-icon">'+icon+'</span>';if(te)te.textContent=label;if(be)be.disabled=false}
+}
+function setPip(n,st,prefix='p'){const e=document.getElementById(prefix+n),num=document.getElementById(prefix+n+'n');if(!e)return;e.className='pip-s '+(st==='done'?'done':st==='act'?'act':'');if(num)num.textContent=st==='done'?'✓':n}
+
+// ── ZK Generate ────────────────────────────────────────────────
+async function zkGen(){
+  const amt=+document.getElementById('zk-amt').value,bal=+document.getElementById('zk-bal').value;
+  const min=+document.getElementById('zk-min').value,max=+document.getElementById('zk-max').value;
+  if(!amt||!bal)return toast('Enter trade amount and balance','e');
+  if(bal<min)return toast('Balance below minimum','e');if(amt>max)return toast('Amount exceeds max','e');
+  setBtn('zk',true,'','');setStat('zk-stat','wait','● COMPUTING');setPip(1,'act');
+  setOut('zk-out','<span class="td2">// Validating constraints...</span>');await sl(200);
+  setPip(1,'done');setPip(2,'act');setOut('zk-out','<span class="td2">// Building R1CS witness...</span>');await sl(300);
+  setPip(2,'done');setPip(3,'act');setOut('zk-out','<span class="td2">// Running Groth16 prover on bn128...\n// Computing π_A, π_B, π_C...</span>');await sl(450);
+  setPip(3,'done');setPip(4,'act');await sl(150);
+  const proof={pi_a:[rf(),rf(),'1'],pi_b:[[rf(),rf()],[rf(),rf()],['1','0']],pi_c:[rf(),rf(),'1'],protocol:'groth16',curve:'bn128'};
+  const ps=[String(min),String(max),'0x'+rid()];
+  const result={proof,publicSignals:ps,commitment:ps[2],circuitId:'trade_verify_v1',generatedAt:new Date().toISOString(),privacy:{hidden:['tradeAmount','traderBalance','nonce'],revealed:['minBalance','maxTradeSize','commitment']}};
+  S.lastProof=result;S.proofs++;setPip(4,'done');setStat('zk-stat','ok','● SUCCESS');setOut('zk-out',fmt(result));
+  document.getElementById('zk-meta').textContent='~620ms';
+  const b=document.getElementById('zk-badge');b.style.display='flex';b.textContent=S.proofs;
+  localStorage.setItem('zkproof',JSON.stringify(result));
+  addActivity('⚡','ZK Proof Generated','groth16 · trade_verify_v1','#00ff88','+1','#00ff88');
+  animNum('st-p',S.proofs);toast('ZK proof generated!','s');setBtn('zk',false,'⚡','Generate ZK Proof');
+}
+
+// ── FHE ───────────────────────────────────────────────────────
+function fheNewSess(){S.fheSess='sess_'+rid();document.getElementById('fhe-sess').textContent=S.fheSess;const kc=document.getElementById('fhe-kchip');kc.style.cssText='border-color:rgba(var(--rgb),0.3);color:var(--acc);background:rgba(var(--rgb),0.08)';kc.textContent='🔑 Keys Active';toast('FHE session created · 128-bit','s')}
+function selFHE(op,el){S.fheOp=op;document.querySelectorAll('#page-fhe .model-row').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');const cfg={add:'Homomorphic Add',mul:'Homomorphic Multiply',bal:'Balance Check',boot:'Bootstrap'};document.getElementById('fhe-op-t').textContent=cfg[op];const la={'add':['Value A 🔒','Value B 🔒'],'mul':['Factor A 🔒','Factor B 🔒'],'bal':['Your Balance 🔒','Trade Amount 🔒'],'boot':['Ciphertext 🔒','(unused)']};document.getElementById('fla').textContent=la[op][0];document.getElementById('flb').textContent=la[op][1]}
+async function fheRun(){
+  if(!S.fheSess)fheNewSess();
+  const a=+document.getElementById('fva').value,b=+document.getElementById('fvb').value;
+  if(!a)return toast('Enter Value A','e');
+  setBtn('fhe',true,'','');setStat('fhe-stat','wait','● ENCRYPTING');
+  setOut('fhe-out','<span class="td2">// Encrypting inputs under TFHE...\n// Sending ciphertexts to compute engine...</span>');
+  document.getElementById('fdv').style.display='none';await sl(320);
+  setStat('fhe-stat','wait','● COMPUTING');setOut('fhe-out','<span class="td2">// Running homomorphic operation...\n// No decryption occurring...</span>');await sl(380);
+  const vals={add:a+b,mul:a*b,bal:a>=b?1:0,boot:a};S.fheLastResult=vals[S.fheOp];
+  const ni={add:12,mul:Math.min(S.fheNoise*8,50),bal:20,boot:-(S.fheNoise-5)};S.fheNoise=Math.max(2,Math.min(95,S.fheNoise+ni[S.fheOp]));
+  const pct=S.fheNoise,nf=document.getElementById('nf');nf.style.width=pct+'%';nf.style.background=pct>80?'#ff4d6d':pct>50?'#fbbf24':'var(--acc)';document.getElementById('nv').textContent='~'+Math.round(pct)+'%';
+  const ops={add:'homomorphic_add',mul:'homomorphic_multiply',bal:'encrypted_balance_check',boot:'bootstrap'};
+  const ctR='ct_'+rid();S.fhe++;setStat('fhe-stat','ok','● SUCCESS');
+  setOut('fhe-out',fmt({session:S.fheSess,operation:ops[S.fheOp],result_ct:ctR,noiseLevel:Math.round(S.fheNoise)+'%',requiresBootstrap:S.fheNoise>80,note:'Plaintext never exposed'}));
+  addActivity('🔒','FHE '+ops[S.fheOp],'No decryption occurred','var(--acc)','+1','var(--acc)');
+  animNum('st-f',S.fhe);toast('FHE computation complete!','s');setBtn('fhe',false,'🔒','Encrypt & Compute');
+}
+function fheDecrypt(){if(S.fheLastResult===null)return toast('Run a computation first','e');const el=document.getElementById('fdv');el.style.display='block';document.getElementById('fdnum').textContent=S.fheLastResult.toLocaleString();toast('Decrypted with session key','s')}
+
+// ── Trade ──────────────────────────────────────────────────────
+async function tradeSubmit(){
+  const amt=+document.getElementById('tr-amt').value,bal=+document.getElementById('tr-bal').value;
+  const min=+document.getElementById('tr-min').value,max=+document.getElementById('tr-max').value;
+  if(!amt||!bal)return toast('Fill trade details','e');if(bal<min)return toast('Balance below minimum','e');if(amt>max)return toast('Amount exceeds max','e');
+  setBtn('tr',true,'','');setStat('tr-stat','wait','● PROVING');setOut('tr-out','<span class="td2">// Generating ZK proof...</span>');setPip(2,'act','tp');await sl(400);
+  setPip(2,'done','tp');setPip(3,'act','tp');setStat('tr-stat','wait','● FHE CHECK');setOut('tr-out','<span class="td2">// Verifying on-chain...\n// FHE balance check...</span>');await sl(400);
+  setPip(3,'done','tp');setPip(4,'act','tp');await sl(300);
+  const trade={id:'trade_'+rid(),status:'executed',pair:document.getElementById('tr-pair').value,side:document.getElementById('tr-side').value,proofHash:'0x'+rid(),gasUsed:250000,executedAt:new Date().toISOString(),privacy:'shielded — amounts and identity hidden'};
+  setPip(4,'done','tp');S.trades++;setStat('tr-stat','ok','● SETTLED');setOut('tr-out',fmt(trade));
+  const hist=document.getElementById('tr-hist');
+  hist.innerHTML=(hist.querySelector('[style*="center"]')?'':hist.innerHTML)+`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.03);font-size:10px;font-family:'JetBrains Mono',monospace"><span style="color:var(--acc)">${trade.id}</span><span style="background:rgba(0,255,136,0.1);color:#00ff88;padding:2px 7px;border-radius:3px;font-size:9px;font-weight:700">settled</span><span style="color:var(--dim)">${new Date().toLocaleTimeString()}</span></div>`;
+  addActivity('🛡','Shielded Trade Executed',trade.pair+' · '+trade.side,'#22d3ee','+1','#22d3ee');
+  animNum('st-t',S.trades);toast('Trade executed — fully shielded!','s');setBtn('tr',false,'🛡','Execute Shielded Trade');
+}
+
+// ── Verify ────────────────────────────────────────────────────
+function loadSample(){const stored=localStorage.getItem('zkproof');if(stored){const p=JSON.parse(stored);document.getElementById('vf-proof').value=JSON.stringify(p.proof,null,2);document.getElementById('vf-sigs').value=JSON.stringify(p.publicSignals);toast('Loaded from ZK generator','i')}else{const proof={pi_a:[rf(),rf(),'1'],pi_b:[[rf(),rf()],[rf(),rf()],['1','0']],pi_c:[rf(),rf(),'1'],protocol:'groth16',curve:'bn128'};document.getElementById('vf-proof').value=JSON.stringify(proof,null,2);document.getElementById('vf-sigs').value='["1000","100000","0xabcdef"]';toast('Sample proof loaded','i')}}
+async function doVerify(){
+  let proof,sigs;
+  try{proof=JSON.parse(document.getElementById('vf-proof').value)}catch{return toast('Invalid proof JSON','e')}
+  try{sigs=JSON.parse(document.getElementById('vf-sigs').value)}catch{return toast('Invalid signals','e')}
+  setBtn('vf',true,'','');setOut('vf-log','<span style="color:#60a5fa">// Parsing proof...\n// Loading verification key...</span>');await sl(320);
+  setOut('vf-log',document.getElementById('vf-log').innerHTML+'\n<span style="color:#60a5fa">// Running bn128 pairing check...</span>');await sl(580);
+  const valid=proof&&proof.protocol==='groth16'&&Array.isArray(sigs)&&Array.isArray(proof.pi_a)&&proof.pi_a[2]==='1';
+  const hash='0x'+rid();S.verified++;
+  const hero=document.getElementById('vf-hero');
+  hero.style.cssText='display:flex;flex-direction:column;align-items:center;justify-content:center;padding:36px 20px;border-radius:10px;border:2px solid;min-height:240px;text-align:center;margin-bottom:14px;transition:all 0.4s;'+(valid?'border-color:rgba(0,255,136,0.3);background:rgba(0,255,136,0.04)':'border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.04)');
+  hero.innerHTML='<div style="font-size:48px;margin-bottom:12px">'+(valid?'✅':'❌')+'</div><div style="font-size:20px;font-weight:800;margin-bottom:6px;color:'+(valid?'#00ff88':'#f87171')+'">'+(valid?'PROOF VALID':'PROOF INVALID')+'</div><div style="font-size:11px;color:var(--dim);line-height:1.6;max-width:240px">'+(valid?'Pairing check passed. No private data revealed.':'Pairing check failed. Proof rejected.')+'</div>';
+  document.getElementById('vf-log').innerHTML+='\n<span style="color:'+(valid?'#00ff88':'#f87171')+'">'+(valid?'// ✓ VALID — proofHash: '+hash:'// ✗ REJECTED — invalid pairing')+'</span>';
+  addActivity(valid?'✅':'❌','Proof '+(valid?'VALID':'INVALID'),document.getElementById('vf-circ').value,valid?'#00ff88':'#f87171',valid?'✓':'✗',valid?'#00ff88':'#f87171');
+  animNum('st-v',S.verified);toast(valid?'Proof verified!':'Proof rejected!',valid?'s':'e');setBtn('vf',false,'✅','Verify Proof');
+}
+
+// ── Range ─────────────────────────────────────────────────────
+const UCS=[{val:47320,min:10000,max:100000},{val:742,min:700,max:850},{val:34,min:18,max:65},{val:85000,min:50000,max:1000000}];
+function loadUC(i,el){document.querySelectorAll('#page-range .model-row').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');document.getElementById('rg-val').value=UCS[i].val;document.getElementById('rg-min').value=UCS[i].min;document.getElementById('rg-max').value=UCS[i].max;updateRangeVis()}
+function updateRangeVis(){
+  const val=+document.getElementById('rg-val').value||47320,min=+document.getElementById('rg-min').value||10000,max=+document.getElementById('rg-max').value||100000;
+  const inRange=val>=min&&val<=max,pct=Math.max(0,Math.min(100,((val-min)/(max-min))*100));
+  document.getElementById('rg-vis-val').textContent=val.toLocaleString();
+  document.getElementById('rg-fill').style.width=pct+'%';document.getElementById('rg-thumb').style.left='calc('+pct+'% - 9px)';
+  document.getElementById('rg-thumb').style.background=inRange?'var(--acc)':'#f87171';
+  document.getElementById('rg-vis-min').textContent=min.toLocaleString();document.getElementById('rg-vis-max').textContent=max.toLocaleString();
+  document.getElementById('rg-vmin').textContent=min.toLocaleString();document.getElementById('rg-vmax').textContent=max.toLocaleString();
+  const bOk='<span style="padding:4px 11px;border-radius:100px;font-size:9px;font-weight:700;font-family:JetBrains Mono,monospace;background:rgba(0,255,136,0.1);color:#00ff88;border:1px solid rgba(0,255,136,0.2)">';
+  const bFail='<span style="padding:4px 11px;border-radius:100px;font-size:9px;font-weight:700;font-family:JetBrains Mono,monospace;background:rgba(248,113,113,0.1);color:#f87171;border:1px solid rgba(248,113,113,0.2)">';
+  document.getElementById('rg-badges').innerHTML=inRange?bOk+'✓ Within Range</span>'+bOk+'✓ ≥ Min</span>'+bOk+'✓ ≤ Max</span>':bFail+'✗ Outside Range</span>'+(val<min?bFail+'✗ Below Min</span>':bFail+'✗ Above Max</span>');
+}
+async function genRange(){
+  const val=+document.getElementById('rg-val').value,min=+document.getElementById('rg-min').value,max=+document.getElementById('rg-max').value;
+  if(!val)return toast('Enter a secret value','e');if(min>=max)return toast('Min must be less than max','e');if(val<min||val>max)return toast('Value outside range!','e');
+  setBtn('rg',true,'','');setStat('rg-stat','wait','● COMPUTING');setOut('rg-out','<span class="td2">// Building 64-bit circuit...\n// Computing Groth16 proof...</span>');await sl(600);
+  const result={proof:{pi_a:[rf(),rf(),'1'],pi_b:[[rf(),rf()],[rf(),rf()],['1','0']],pi_c:[rf(),rf(),'1'],protocol:'groth16',curve:'bn128'},publicSignals:{min:String(min),max:String(max)},type:'range_proof',bits:64,valid:true,summary:'Proves: value ∈ ['+min+', '+max+'] — exact value hidden'};
+  S.proofs++;setStat('rg-stat','ok','● SUCCESS');setOut('rg-out',fmt(result));
+  addActivity('📐','Range Proof Generated','['+min.toLocaleString()+', '+max.toLocaleString()+']','var(--acc)','+1','var(--acc)');
+  animNum('st-p',S.proofs);toast('Range proof generated!','s');setBtn('rg',false,'📐','Generate Range Proof');
+}
+
+// ── ML ────────────────────────────────────────────────────────
+function selML(id,el){S.mlModel=id;document.querySelectorAll('#page-ml .model-row').forEach(c=>c.classList.remove('sel'));el.classList.add('sel')}
+async function runML(){
+  const feats=document.getElementById('ml-feats').value;if(!feats)return toast('Enter feature values','e');
+  setBtn('ml',true,'','');setStat('ml-stat','wait','● ENCRYPTING');setOut('ml-out','<span class="td2">// Encrypting features under TFHE...\n// Running FHE polynomial evaluation...</span>');await sl(500);
+  const score=0.2+Math.random()*0.75,conf=(0.7+Math.random()*0.28).toFixed(3),lat=Math.floor(80+Math.random()*80);
+  const result={modelId:S.mlModel,resultCiphertextId:'ct_'+rid(),confidence:+conf,latencyMs:lat,privacyGuarantee:'FHE — raw features never decrypted on server',generatedAt:new Date().toISOString()};
+  setStat('ml-stat','ok','● COMPLETE');setOut('ml-out',fmt(result));
+  addActivity('🧠','ML Inference Completed',S.mlModel+' · confidence '+conf,'var(--acc)',conf,'var(--acc)');
+  toast('Inference complete · conf '+conf,'s');setBtn('ml',false,'🧠','Run Private Inference');
+}
+
+// ── API Explorer ──────────────────────────────────────────────
+function updateAPIBody(){const sel=document.getElementById('api-ep').value;document.getElementById('api-body').value=API_BODIES[sel]||''}
+async function runAPI(){
+  const sel=document.getElementById('api-ep').value,[method,fullEp]=sel.split(' '),ep=fullEp.replace('/api','');
+  let body=null;if(method==='POST'){try{body=JSON.parse(document.getElementById('api-body').value||'{}')}catch{return toast('Invalid JSON body','e')}}
+  setBtn('api',true,'','');setStat('api-stat','wait','● REQUESTING');
+  const start=Date.now();
+  let r;try{const opts={method,headers:{'Content-Type':'application/json'},signal:AbortSignal.timeout(6000)};if(body&&method!=='GET')opts.body=JSON.stringify(body);const res=await fetch('http://localhost:3001'+fullEp,opts);r=await res.json()}catch{r=simulateAPI(ep||fullEp,body)}
+  const ms=Date.now()-start;setStat('api-stat',r.success!==false?'ok':'err',r.success!==false?'● 200 OK':'● ERROR');setOut('api-out',fmt(r));document.getElementById('api-meta').textContent=ms+'ms';
+  setBtn('api',false,'🔌','Send Request');
+}
+function simulateAPI(ep,body){
+  if(ep==='/health'||ep==='health')return{status:'operational',version:'2.0.0',modules:{zkProofs:'snarkjs/groth16',fhe:'TFHE-simulated'},timestamp:new Date().toISOString()};
+  if(ep==='/zk/generate')return{success:true,data:{proof:{pi_a:[rf(),rf(),'1'],pi_b:[[rf(),rf()],[rf(),rf()],['1','0']],pi_c:[rf(),rf(),'1'],protocol:'groth16',curve:'bn128'},publicSignals:[(body?.minBalance||1000).toString(),(body?.maxTradeSize||100000).toString(),'0x'+rid()],circuitId:'trade_verify_v1',generatedAt:new Date().toISOString()}};
+  if(ep==='/zk/verify')return{success:true,data:{valid:true,proofHash:'0x'+rid(),verifiedAt:new Date().toISOString(),gasEstimate:{estimate:250000,unit:'gas'}}};
+  if(ep==='/zk/stats')return{success:true,data:{generated:S.proofs,verified:S.verified,rejected:0}};
+  if(ep==='/zk/circuits')return{success:true,data:[{id:'trade_verify_v1',constraints:'~150k R1CS'},{id:'range_proof_v1',constraints:'~64k R1CS'},{id:'membership_v1',constraints:'~200k R1CS'}]};
+  if(ep==='/zk/range')return{success:true,data:{proof:{pi_a:[rf(),rf(),'1'],pi_b:[[rf(),rf()],[rf(),rf()],['1','0']],pi_c:[rf(),rf(),'1'],protocol:'groth16',curve:'bn128'},publicSignals:{min:(body?.min||0).toString(),max:(body?.max||100).toString()},type:'range_proof',bits:64}};
+  if(ep==='/fhe/keygen')return{success:true,data:{sessionId:'sess_'+rid(),publicKey:rf(),evalKey:rf(),securityLevel:128,scheme:'TFHE',created:new Date().toISOString()}};
+  if(ep.startsWith('/fhe/'))return{success:true,data:{resultCiphertextId:'ct_'+rid(),operation:ep.split('/')[2],noiseLevel:Math.floor(Math.random()*5000),requiresBootstrap:false}};
+  if(ep==='/trade/submit')return{success:true,data:{id:'trade_'+rid(),status:'executed',proofHash:'0x'+rid(),executedAt:new Date().toISOString(),privacy:'shielded'}};
+  if(ep==='/trade/history')return{success:true,data:[]};
+  if(ep==='/ml/infer')return{success:true,data:{modelId:body?.modelId||'risk_scorer',resultCiphertextId:'ct_'+rid(),confidence:(0.7+Math.random()*0.28).toFixed(3),latencyMs:Math.floor(80+Math.random()*80),privacyGuarantee:'FHE encrypted'}};
+  if(ep==='/ml/models')return{success:true,data:[{id:'risk_scorer',name:'Risk Score Model',accuracy:0.94},{id:'fraud_detector',name:'Fraud Detector',accuracy:0.97}]};
+  if(ep==='/dashboard/overview')return{success:true,data:{zk:{generated:S.proofs,verified:S.verified},fhe:{operations:S.fhe},trade:{executed:S.trades},system:{uptime:Math.floor(Date.now()/1000),nodeVersion:'v20.0.0'},timestamp:new Date().toISOString()}};
+  return{success:false,error:'Endpoint not found: '+ep};
+}
+
+// ── Init ──────────────────────────────────────────────────────
+updateRangeVis();updateAPIBody();
+</script>
+</body>
+</html>

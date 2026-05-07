@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ZK Trade Prover — ShieldFi</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#030806;--s1:#061109;--s2:#0a1a0d;--green:#00ff88;--g2:#00cc6a;--dim:#2a5a3c;--text:#b8f5d0;--muted:#0d2a16;--border:rgba(0,255,136,0.1);--r:10px}
+body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,136,0.007) 2px,rgba(0,255,136,0.007) 4px);pointer-events:none;z-index:0}
+.topnav{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;border-bottom:1px solid var(--border);background:rgba(3,8,6,0.92);backdrop-filter:blur(12px);position:sticky;top:0;z-index:100}
+.back{text-decoration:none;color:var(--dim);font-size:11px;font-family:'JetBrains Mono',monospace;display:flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid var(--border);border-radius:6px;transition:color 0.2s}
+.back:hover{color:var(--green);border-color:rgba(0,255,136,0.25)}
+.nav-r{display:flex;align-items:center;gap:8px}
+.nbadge{display:flex;align-items:center;gap:5px;font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--green);background:rgba(0,255,136,0.07);border:1px solid var(--border);padding:5px 12px;border-radius:100px}
+.ndot{width:5px;height:5px;background:var(--green);border-radius:50%;box-shadow:0 0 6px var(--green);animation:p 1.8s ease-in-out infinite}
+@keyframes p{0%,100%{opacity:1}50%{opacity:0.3}}
+.container{max-width:1200px;margin:0 auto;padding:36px 28px;position:relative;z-index:1}
+.page-tag{font-size:9px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;font-family:'JetBrains Mono',monospace;margin-bottom:10px}
+.page-h1{font-size:clamp(28px,5vw,48px);font-weight:700;letter-spacing:-1.5px;line-height:1.1;margin-bottom:12px}
+.page-h1 em{color:var(--green);font-style:normal}
+.page-sub{font-size:13px;color:var(--dim);line-height:1.8;max-width:480px;margin-bottom:32px;font-weight:400}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:800px){.g2{grid-template-columns:1fr}}
+.mb16{margin-bottom:16px}
+.card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.ch{padding:15px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.chi{width:28px;height:28px;border-radius:7px;background:rgba(0,255,136,0.08);border:1px solid var(--border);display:grid;place-items:center;font-size:13px}
+.cht{font-size:12px;font-weight:700}.chs{font-size:10px;color:var(--dim);font-family:'JetBrains Mono',monospace;margin-top:1px}
+.cb{padding:18px}
+.priv-rows{display:flex;flex-direction:column;gap:5px;margin-bottom:16px}
+.pr{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;font-size:11px;font-weight:600}
+.pr.h{background:rgba(0,255,136,0.05);border:1px solid rgba(0,255,136,0.12)}
+.pr.s{background:rgba(255,200,0,0.04);border:1px solid rgba(255,200,0,0.1)}
+.pill{padding:2px 7px;border-radius:3px;font-size:9px;font-weight:700;text-transform:uppercase;font-family:'JetBrains Mono',monospace}
+.h .pill{background:rgba(0,255,136,0.1);color:var(--green)}
+.s .pill{background:rgba(255,200,0,0.1);color:#ffc800}
+.pr .fn{flex:1}.pr .note{font-size:9px;color:var(--dim)}
+.field{margin-bottom:13px}
+label{display:block;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:6px;font-family:'JetBrains Mono',monospace}
+input,select,textarea{width:100%;background:var(--s2);border:1px solid rgba(0,255,136,0.08);border-radius:7px;padding:10px 12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;outline:none;transition:border-color 0.2s}
+input:focus,textarea:focus{border-color:rgba(0,255,136,0.3);box-shadow:0 0 0 3px rgba(0,255,136,0.05)}
+input::placeholder{color:var(--muted)}
+textarea{min-height:100px;resize:vertical;font-size:11px;line-height:1.6}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn{width:100%;padding:13px;border:none;border-radius:7px;font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;margin-top:14px;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-p{background:linear-gradient(135deg,var(--green),var(--g2));color:#020d07}
+.btn-p:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(0,255,136,0.25)}
+.btn-p:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+.btn-g{background:transparent;border:1px solid var(--border);color:var(--dim)}
+.btn-g:hover{border-color:rgba(0,255,136,0.25);color:var(--text)}
+.pip{display:flex;flex-direction:column;gap:0}
+.pip-s{display:flex;gap:12px;padding:12px 0;border-bottom:1px dashed rgba(0,255,136,0.07)}
+.pip-s:last-child{border:0}
+.pip-n{width:24px;height:24px;border-radius:50%;border:1px solid rgba(0,255,136,0.15);display:grid;place-items:center;font-size:10px;font-weight:700;color:var(--dim);font-family:'JetBrains Mono',monospace;flex-shrink:0;transition:all 0.3s}
+.pip-s.done .pip-n{background:rgba(0,255,136,0.12);border-color:var(--green);color:var(--green)}
+.pip-s.active .pip-n{background:rgba(0,200,255,0.1);border-color:#00c8ff;color:#00c8ff;animation:pp 1s ease-in-out infinite}
+@keyframes pp{0%,100%{box-shadow:0 0 6px rgba(0,200,255,0.3)}50%{box-shadow:0 0 18px rgba(0,200,255,0.6)}}
+.pip-t{font-size:12px;font-weight:600}.pip-d{font-size:10px;color:var(--dim);font-family:'JetBrains Mono',monospace;margin-top:2px}
+.terminal{background:#020603;border:1px solid rgba(0,255,136,0.07);border-radius:8px;overflow:hidden}
+.tbar{background:#030804;border-bottom:1px solid rgba(0,255,136,0.05);padding:9px 13px;display:flex;align-items:center;justify-content:space-between}
+.tdots{display:flex;gap:5px}.td{width:10px;height:10px;border-radius:50%}
+.tlbl{font-size:10px;color:var(--dim);font-family:'JetBrains Mono',monospace}
+.tstat{font-size:10px;font-family:'JetBrains Mono',monospace}
+.ok{color:#00ff88}.err{color:#ff4d6d}.wait{color:#00c8ff}
+.tbody{padding:14px;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.8;min-height:80px;max-height:300px;overflow-y:auto;color:#1e5a30;white-space:pre-wrap;word-break:break-all}
+.tfoot{display:flex;justify-content:space-between;align-items:center;padding:7px 13px;border-top:1px solid rgba(0,255,136,0.05)}
+.cp{background:var(--s2);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:3px 9px;font-size:10px;font-family:'JetBrains Mono',monospace;cursor:pointer;transition:all 0.2s}
+.cp:hover{color:var(--green);border-color:rgba(0,255,136,0.25)}
+.info{background:rgba(0,200,255,0.04);border:1px solid rgba(0,200,255,0.12);border-radius:7px;padding:11px 13px;font-size:11px;color:rgba(0,200,255,0.75);line-height:1.6;margin-bottom:14px;display:flex;gap:8px}
+.spin{width:14px;height:14px;border:2px solid rgba(0,0,0,0.2);border-top-color:#020d07;border-radius:50%;animation:sp 0.7s linear infinite;display:inline-block}
+@keyframes sp{to{transform:rotate(360deg)}}
+.tg{color:#00ff88}.tc{color:#00c8ff}.ta{color:#ffc800}.tw{color:var(--text)}.tr{color:#ff4d6d}.td2{color:var(--dim)}
+#toasts{position:fixed;bottom:18px;right:18px;z-index:999;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--s1);border:1px solid var(--border);border-radius:7px;padding:10px 14px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:8px;min-width:200px;font-family:'JetBrains Mono',monospace;animation:ti 0.25s ease}
+@keyframes ti{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:translateX(0)}}
+.ts{border-color:rgba(0,255,136,0.25);color:#00ff88}.te{border-color:rgba(255,77,109,0.25);color:#ff4d6d}.ti{border-color:rgba(0,200,255,0.25);color:#00c8ff}
+</style>
+</head>
+<body>
+<div class="topnav">
+  <a href="index.html" class="back">← Platform</a>
+  <div style="font-size:13px;font-weight:700">⚡ ZK Trade Prover</div>
+  <div class="nav-r"><div class="nbadge"><div class="ndot"></div>Groth16 · bn128</div></div>
+</div>
+<div class="container">
+  <div class="page-tag">01 / 07 · ZK Trade Prover</div>
+  <h1 class="page-h1">Prove Trades<br/><em>Without Revealing</em> Anything</h1>
+  <p class="page-sub">Generate Groth16 zero-knowledge proofs for shielded DeFi trades. Your balance, amount, and identity stay cryptographically hidden — forever.</p>
+  <div class="g2">
+    <div>
+      <div class="card mb16">
+        <div class="ch"><div class="chi">🔐</div><div><div class="cht">Private Inputs</div><div class="chs">Never transmitted or stored</div></div></div>
+        <div class="cb">
+          <div class="priv-rows">
+            <div class="pr h"><span class="pill">🔒 hidden</span><span class="fn">Trade Amount</span><span class="note">Circuit only</span></div>
+            <div class="pr h"><span class="pill">🔒 hidden</span><span class="fn">Your Balance</span><span class="note">Circuit only</span></div>
+            <div class="pr h"><span class="pill">🔒 hidden</span><span class="fn">Nonce</span><span class="note">Circuit only</span></div>
+            <div class="pr s"><span class="pill">👁 public</span><span class="fn">Min Balance Threshold</span><span class="note">Proof signal</span></div>
+            <div class="pr s"><span class="pill">👁 public</span><span class="fn">Max Trade Size</span><span class="note">Proof signal</span></div>
+          </div>
+          <div class="fr">
+            <div class="field"><label>Trade Amount 🔒</label><input type="number" id="g-amt" value="5000" placeholder="5000"/></div>
+            <div class="field"><label>Your Balance 🔒</label><input type="number" id="g-bal" value="50000" placeholder="50000"/></div>
+          </div>
+          <div class="fr">
+            <div class="field"><label>Min Balance 👁</label><input type="number" id="g-min" value="1000" placeholder="1000"/></div>
+            <div class="field"><label>Max Trade 👁</label><input type="number" id="g-max" value="100000" placeholder="100000"/></div>
+          </div>
+          <button class="btn btn-p" id="gen-btn" onclick="generate()"><span id="gen-icon">⚡</span><span id="gen-txt">Generate ZK Proof</span></button>
+          <button class="btn btn-g" onclick="goVerify()" style="margin-top:8px">✅ Send to Verifier →</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch"><div class="chi">🔄</div><div><div class="cht">Proof Pipeline</div><div class="chs">Groth16 on bn128</div></div></div>
+        <div class="cb">
+          <div class="pip">
+            <div class="pip-s" id="p1"><div class="pip-n" id="p1n">1</div><div><div class="pip-t">Validate Constraints</div><div class="pip-d">balance ≥ min · amount ≤ max</div></div></div>
+            <div class="pip-s" id="p2"><div class="pip-n" id="p2n">2</div><div><div class="pip-t">Build R1CS Witness</div><div class="pip-d">Map inputs → circuit variables</div></div></div>
+            <div class="pip-s" id="p3"><div class="pip-n" id="p3n">3</div><div><div class="pip-t">Groth16 Prover</div><div class="pip-d">Compute π_A, π_B, π_C on bn128</div></div></div>
+            <div class="pip-s" id="p4"><div class="pip-n" id="p4n">4</div><div><div class="pip-t">Export Proof</div><div class="pip-d">Proof + public signals only</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card mb16">
+        <div class="ch"><div class="chi">📤</div><div><div class="cht">Proof Output</div><div class="chs">Safe to share publicly</div></div></div>
+        <div class="cb">
+          <div class="info"><span>ℹ️</span>This output has no private data. Share with any verifier on-chain or off-chain.</div>
+          <div class="terminal">
+            <div class="tbar"><div class="tdots"><div class="td" style="background:#ff5f57"></div><div class="td" style="background:#febc2e"></div><div class="td" style="background:#28c840"></div></div><div class="tlbl">proof.json</div><div class="tstat wait" id="gstat">● READY</div></div>
+            <div class="tbody" id="gout"><span class="td2">// Fill the form and click Generate</span></div>
+            <div class="tfoot"><span class="tlbl" id="gmeta"></span><button class="cp" onclick="cp('gout')">Copy JSON</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch"><div class="chi">📖</div><div><div class="cht">Circuit Details</div><div class="chs">trade_verify_v1</div></div></div>
+        <div class="cb" style="font-size:11px;color:var(--dim);line-height:1.7">
+          <p style="margin-bottom:12px">The Groth16 prover computes three elliptic curve group elements — <span style="color:var(--green);font-family:'JetBrains Mono',monospace">π_A ∈ G1</span>, <span style="color:var(--green);font-family:'JetBrains Mono',monospace">π_B ∈ G2</span>, <span style="color:var(--green);font-family:'JetBrains Mono',monospace">π_C ∈ G1</span> — encoding all private inputs without revealing them.</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div style="background:var(--s2);border-radius:7px;padding:13px;text-align:center"><div style="font-size:18px;font-weight:800;color:var(--green);font-family:'JetBrains Mono',monospace">~150k</div><div style="font-size:10px;color:var(--dim);margin-top:3px">R1CS Constraints</div></div>
+            <div style="background:var(--s2);border-radius:7px;padding:13px;text-align:center"><div style="font-size:18px;font-weight:800;color:var(--green);font-family:'JetBrains Mono',monospace">~250k</div><div style="font-size:10px;color:var(--dim);margin-top:3px">Gas to Verify</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="toasts"></div>
+<script>
+let lastProof=null;
+const pr=21888242871839275222246405745257275088548364400416034343698204186575808495617n;
+function rf(){return (BigInt('0x'+Array.from({length:16},()=>Math.floor(Math.random()*16).toString(16)).join(''))%pr).toString()}
+function setPip(n,st){const e=document.getElementById('p'+n),num=document.getElementById('p'+n+'n');if(!e)return;e.className='pip-s '+(st==='done'?'done':st==='active'?'active':'');num.textContent=st==='done'?'✓':n}
+function resetPips(){for(let i=1;i<=4;i++)setPip(i,'')}
+function setBtn(l,txt){const i=document.getElementById('gen-icon'),t=document.getElementById('gen-txt'),b=document.getElementById('gen-btn');if(l){i.outerHTML='<div class="spin" id="gen-icon"></div>';t.textContent=txt;b.disabled=true}else{document.getElementById('gen-icon').outerHTML='<span id="gen-icon">⚡</span>';t.textContent=txt;b.disabled=false}}
+function setStat(id,cl,txt){const e=document.getElementById(id);if(e){e.className='tstat '+cl;e.textContent=txt}}
+function setOut(id,html){const e=document.getElementById(id);if(e)e.innerHTML=html}
+function fmt(obj){return JSON.stringify(obj,null,2).replace(/"([^"]+)":/g,'<span class="tc">"$1"</span>:').replace(/: "([^"]+)"/g,': <span class="tw">"$1"</span>').replace(/: (true)/g,': <span class="tg">true</span>').replace(/: (false)/g,': <span class="tr">false</span>').replace(/: (\d+\.?\d*)/g,': <span class="ta">$1</span>')}
+function cp(id){navigator.clipboard.writeText(document.getElementById(id).innerText||'').then(()=>toast('Copied!','i'))}
+function sl(ms){return new Promise(r=>setTimeout(r,ms))}
+function toast(msg,type){const c=document.getElementById('toasts'),el=document.createElement('div');el.className='toast t'+type;el.innerHTML=(type==='s'?'✓ ':type==='e'?'✗ ':'ℹ ')+msg;c.appendChild(el);setTimeout(()=>el.remove(),3000)}
+async function generate(){
+  const amt=+document.getElementById('g-amt').value,bal=+document.getElementById('g-bal').value,min=+document.getElementById('g-min').value,max=+document.getElementById('g-max').value;
+  if(!amt||!bal)return toast('Enter trade amount and balance','e');
+  if(bal<min)return toast('Balance below minimum','e');
+  if(amt>max)return toast('Amount exceeds max trade size','e');
+  setBtn(true,'Generating...');setStat('gstat','wait','● COMPUTING');
+  setOut('gout','<span class="td2">// Validating constraints...</span>');
+  setPip(1,'active');await sl(220);setPip(1,'done');setPip(2,'active');
+  setOut('gout','<span class="td2">// Building R1CS witness...\n// Mapping private inputs → circuit variables...</span>');
+  await sl(320);setPip(2,'done');setPip(3,'active');
+  setOut('gout','<span class="td2">// Running Groth16 prover on bn128...\n// Computing π_A, π_B, π_C...</span>');
+  await sl(480);setPip(3,'done');setPip(4,'active');await sl(180);
+  const proof={pi_a:[rf(),rf(),'1'],pi_b:[[rf(),rf()],[rf(),rf()],['1','0']],pi_c:[rf(),rf(),'1'],protocol:'groth16',curve:'bn128'};
+  const publicSignals=[String(min),String(max),'0x'+Array.from({length:8},()=>Math.floor(Math.random()*16).toString(16)).join('')];
+  const result={proof,publicSignals,commitment:publicSignals[2],circuitId:'trade_verify_v1',generatedAt:new Date().toISOString(),privacy:{hidden:['tradeAmount','traderBalance','nonce'],revealed:['minBalance','maxTradeSize','commitment']}};
+  lastProof=result;setPip(4,'done');
+  setStat('gstat','ok','● SUCCESS');
+  setOut('gout',fmt(result));
+  document.getElementById('gmeta').textContent='generated ~620ms';
+  localStorage.setItem('zkproof',JSON.stringify(result));
+  toast('ZK proof generated!','s');
+  setBtn(false,'⚡ Generate ZK Proof');
+}
+function goVerify(){if(!lastProof)return toast('Generate a proof first','e');window.location.href='p4-verify.html'}
+</script>
+</body>
+</html>

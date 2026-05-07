@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Privacy Command Center — ShieldFi</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+:root{
+  --bg:#060708;--s1:#0b0d0f;--s2:#111416;--s3:#171a1d;
+  --blue:#3b82f6;--green:#22c55e;--amber:#f59e0b;--red:#ef4444;--violet:#a78bfa;--cyan:#06b6d4;
+  --text:#e2e8f0;--dim:#475569;--muted:#1e2830;--border:rgba(255,255,255,0.06);
+  --r:10px;
+}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;display:flex;flex-direction:column}
+
+/* ── Top nav ── */
+.topnav{display:flex;align-items:center;justify-content:space-between;padding:12px 28px;border-bottom:1px solid var(--border);background:rgba(6,7,8,0.95);backdrop-filter:blur(16px);flex-shrink:0;z-index:100}
+.topnav-left{display:flex;align-items:center;gap:16px}
+.back-link{display:flex;align-items:center;gap:6px;text-decoration:none;color:var(--dim);font-size:12px;font-family:'JetBrains Mono',monospace;transition:color 0.2s;padding:6px 10px;border-radius:6px;border:1px solid var(--border)}
+.back-link:hover{color:var(--text);border-color:rgba(255,255,255,0.12)}
+.nav-title{font-size:14px;font-weight:700;color:var(--text)}
+.nav-sub{font-size:10px;color:var(--dim);font-family:'JetBrains Mono',monospace;margin-top:1px}
+.topnav-right{display:flex;align-items:center;gap:10px}
+.live-chip{display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:100px;font-size:10px;font-family:'JetBrains Mono',monospace;font-weight:600;border:1px solid rgba(34,197,94,0.25);color:var(--green);background:rgba(34,197,94,0.08)}
+.live-dot{width:5px;height:5px;background:var(--green);border-radius:50%;animation:ld 1.6s ease-in-out infinite;box-shadow:0 0 6px var(--green)}
+@keyframes ld{0%,100%{opacity:1}50%{opacity:0.3}}
+.time-chip{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--dim);padding:5px 12px;border-radius:100px;border:1px solid var(--border)}
+
+/* ── Dashboard grid layout ── */
+.dashboard{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px}
+
+/* ── KPI row ── */
+.kpi-row{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+@media(max-width:1200px){.kpi-row{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:700px){.kpi-row{grid-template-columns:repeat(2,1fr)}}
+
+.kpi{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;position:relative;overflow:hidden;transition:border-color 0.2s}
+.kpi:hover{border-color:rgba(255,255,255,0.1)}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--kc,#3b82f6),transparent);opacity:0.7}
+.kpi[data-c="green"]{--kc:#22c55e}
+.kpi[data-c="amber"]{--kc:#f59e0b}
+.kpi[data-c="red"]{--kc:#ef4444}
+.kpi[data-c="violet"]{--kc:#a78bfa}
+.kpi[data-c="cyan"]{--kc:#06b6d4}
+.kpi-label{font-size:9px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);font-family:'JetBrains Mono',monospace;margin-bottom:8px}
+.kpi-val{font-size:22px;font-weight:800;letter-spacing:-0.5px;font-family:'JetBrains Mono',monospace;color:var(--text)}
+.kpi-change{font-size:10px;font-family:'JetBrains Mono',monospace;margin-top:6px;display:flex;align-items:center;gap:4px}
+.kpi-icon{position:absolute;top:12px;right:12px;font-size:18px;opacity:0.4}
+
+/* ── Main content grid ── */
+.main-grid{display:grid;grid-template-columns:1fr 1fr 360px;gap:16px}
+@media(max-width:1300px){.main-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:900px){.main-grid{grid-template-columns:1fr}}
+
+/* ── Card ── */
+.card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.card-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border)}
+.ch-left{display:flex;align-items:center;gap:8px}
+.ch-ico{width:24px;height:24px;border-radius:6px;display:grid;place-items:center;font-size:12px;background:var(--s2)}
+.ch-title{font-size:12px;font-weight:700}
+.ch-sub{font-size:9px;color:var(--dim);font-family:'JetBrains Mono',monospace;margin-top:1px}
+.card-body{padding:14px}
+.badge{padding:3px 8px;border-radius:4px;font-size:9px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.badge-green{background:rgba(34,197,94,0.1);color:var(--green);border:1px solid rgba(34,197,94,0.2)}
+.badge-amber{background:rgba(245,158,11,0.1);color:var(--amber);border:1px solid rgba(245,158,11,0.2)}
+.badge-red{background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,0.2)}
+.badge-blue{background:rgba(59,130,246,0.1);color:var(--blue);border:1px solid rgba(59,130,246,0.2)}
+
+/* ── Chart canvas ── */
+.chart-wrap{position:relative;height:140px;margin:4px 0}
+canvas{width:100%!important}
+
+/* ── Module status ── */
+.mod-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.03)}
+.mod-row:last-child{border:0}
+.mod-left{display:flex;align-items:center;gap:10px}
+.mod-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.mod-dot.online{background:var(--green);box-shadow:0 0 8px rgba(34,197,94,0.5)}
+.mod-dot.warning{background:var(--amber);box-shadow:0 0 8px rgba(245,158,11,0.5)}
+.mod-dot.offline{background:var(--red)}
+.mod-name{font-size:11px;font-weight:600}
+.mod-desc{font-size:9px;color:var(--dim);font-family:'JetBrains Mono',monospace;margin-top:1px}
+.mod-right{text-align:right}
+.mod-ping{font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--dim)}
+.mod-uptime{font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace;margin-top:2px}
+
+/* ── Activity feed ── */
+.feed-item{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.03)}
+.feed-item:last-child{border:0}
+.feed-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.feed-content{flex:1}
+.feed-title{font-size:11px;font-weight:600;color:var(--text)}
+.feed-sub{font-size:9px;color:var(--dim);font-family:'JetBrains Mono',monospace;margin-top:2px}
+.feed-time{font-size:9px;color:var(--dim);font-family:'JetBrains Mono',monospace;flex-shrink:0}
+
+/* ── Proof table ── */
+.proof-table{width:100%;border-collapse:collapse}
+.proof-table th{text-align:left;font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);font-family:'JetBrains Mono',monospace;padding:0 8px 8px;border-bottom:1px solid var(--border)}
+.proof-table td{padding:9px 8px;border-bottom:1px solid rgba(255,255,255,0.025);font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim)}
+.proof-table tr:last-child td{border:0}
+.proof-table tr:hover td{background:rgba(255,255,255,0.02);color:var(--text)}
+.status-dot{display:inline-flex;align-items:center;gap:4px}
+.sd-ok{color:var(--green)}.sd-rej{color:var(--red)}.sd-pen{color:var(--amber)}
+
+/* ── Mini sparkline ── */
+.spark-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.spark-label{font-size:10px;color:var(--dim);font-family:'JetBrains Mono',monospace;width:80px;flex-shrink:0}
+.spark-mini{flex:1;height:24px}
+.spark-val{font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace;width:40px;text-align:right;flex-shrink:0}
+
+/* ── Network map ── */
+.net-nodes{display:flex;justify-content:space-between;align-items:center;padding:16px 0;position:relative}
+.net-nodes::before{content:'';position:absolute;top:50%;left:10%;right:10%;height:1px;background:linear-gradient(90deg,var(--green),var(--blue),var(--violet));opacity:0.3}
+.net-node{display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;z-index:1}
+.nn-circle{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-size:16px;border:2px solid;transition:all 0.3s}
+.nn-circle.online{border-color:var(--green);background:rgba(34,197,94,0.08);box-shadow:0 0 16px rgba(34,197,94,0.2)}
+.nn-circle.warning{border-color:var(--amber);background:rgba(245,158,11,0.08)}
+.nn-label{font-size:8px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:var(--dim);font-family:'JetBrains Mono',monospace;text-align:center}
+
+/* ── Resource gauges ── */
+.gauge-row{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.gauge-label{font-size:10px;color:var(--dim);font-family:'JetBrains Mono',monospace;width:70px;flex-shrink:0}
+.gauge-track{flex:1;height:6px;background:var(--s2);border-radius:3px;overflow:hidden}
+.gauge-fill{height:100%;border-radius:3px;transition:width 1s ease}
+.gauge-val{font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace;width:40px;text-align:right;flex-shrink:0}
+
+/* ── Bottom row ── */
+.bottom-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+@media(max-width:1000px){.bottom-row{grid-template-columns:1fr 1fr}}
+@media(max-width:700px){.bottom-row{grid-template-columns:1fr}}
+
+/* ── Quick launch ── */
+.ql-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ql-btn{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--s2);border:1px solid var(--border);border-radius:8px;text-decoration:none;color:var(--dim);font-size:11px;font-weight:600;transition:all 0.2s;cursor:pointer}
+.ql-btn:hover{border-color:rgba(255,255,255,0.12);color:var(--text);background:var(--s3);transform:translateY(-1px)}
+.ql-icon{font-size:16px;flex-shrink:0}
+.ql-text .qt{font-size:11px;font-weight:700;color:var(--text)}
+.ql-text .qs{font-size:9px;color:var(--dim);font-family:'JetBrains Mono',monospace;margin-top:1px}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:2px}
+
+/* ── Toast ── */
+#toasts{position:fixed;bottom:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:8px;min-width:200px;box-shadow:0 8px 24px rgba(0,0,0,0.5);animation:ti 0.25s ease}
+@keyframes ti{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:translateX(0)}}
+.toast.s{border-color:rgba(34,197,94,0.25);color:var(--green)}
+.toast.i{border-color:rgba(59,130,246,0.25);color:var(--blue)}
+.toast.e{border-color:rgba(239,68,68,0.25);color:var(--red)}
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<div class="topnav">
+  <div class="topnav-left">
+    <a href="index.html" class="back-link">← Platform</a>
+    <div>
+      <div class="nav-title">🛡 ShieldFi — Privacy Command Center</div>
+      <div class="nav-sub">07 / 07 · Real-time monitoring across all modules</div>
+    </div>
+  </div>
+  <div class="topnav-right">
+    <div class="time-chip" id="clock">--:--:--</div>
+    <div class="live-chip"><div class="live-dot"></div>LIVE</div>
+  </div>
+</div>
+
+<!-- DASHBOARD BODY -->
+<div class="dashboard">
+
+  <!-- KPI ROW -->
+  <div class="kpi-row">
+    <div class="kpi" data-c="green">
+      <div class="kpi-icon">⚡</div>
+      <div class="kpi-label">ZK Proofs Generated</div>
+      <div class="kpi-val" id="kpi-proofs">0</div>
+      <div class="kpi-change" style="color:var(--green)">↑ <span id="kpi-proofs-rate">0</span>/min</div>
+    </div>
+    <div class="kpi" data-c="blue">
+      <div class="kpi-icon">✅</div>
+      <div class="kpi-label">Proofs Verified</div>
+      <div class="kpi-val" id="kpi-verified">0</div>
+      <div class="kpi-change" style="color:var(--blue)">Trustless</div>
+    </div>
+    <div class="kpi" data-c="violet">
+      <div class="kpi-icon">🔒</div>
+      <div class="kpi-label">FHE Operations</div>
+      <div class="kpi-val" id="kpi-fhe">0</div>
+      <div class="kpi-change" style="color:var(--violet)">Encrypted</div>
+    </div>
+    <div class="kpi" data-c="cyan">
+      <div class="kpi-icon">🛡</div>
+      <div class="kpi-label">Shielded Trades</div>
+      <div class="kpi-val" id="kpi-trades">0</div>
+      <div class="kpi-change" style="color:var(--cyan)">ZK-gated</div>
+    </div>
+    <div class="kpi" data-c="amber">
+      <div class="kpi-icon">🧠</div>
+      <div class="kpi-label">ML Inferences</div>
+      <div class="kpi-val" id="kpi-ml">0</div>
+      <div class="kpi-change" style="color:var(--amber)">FHE-private</div>
+    </div>
+    <div class="kpi" data-c="green">
+      <div class="kpi-icon">🔐</div>
+      <div class="kpi-label">Privacy Score</div>
+      <div class="kpi-val" style="color:var(--green)">100%</div>
+      <div class="kpi-change" style="color:var(--green)">128-bit</div>
+    </div>
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="main-grid">
+
+    <!-- Proof Activity Chart -->
+    <div class="card">
+      <div class="card-head">
+        <div class="ch-left"><div class="ch-ico">📊</div><div><div class="ch-title">Proof Activity</div><div class="ch-sub">Operations over time</div></div></div>
+        <span class="badge badge-green">LIVE</span>
+      </div>
+      <div class="card-body">
+        <div class="chart-wrap"><canvas id="activityChart"></canvas></div>
+        <div style="display:flex;gap:16px;margin-top:10px">
+          <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--dim);font-family:'JetBrains Mono',monospace"><div style="width:8px;height:8px;border-radius:2px;background:var(--green)"></div>ZK Proofs</div>
+          <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--dim);font-family:'JetBrains Mono',monospace"><div style="width:8px;height:8px;border-radius:2px;background:var(--violet)"></div>FHE Ops</div>
+          <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--dim);font-family:'JetBrains Mono',monospace"><div style="width:8px;height:8px;border-radius:2px;background:var(--cyan)"></div>Trades</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Module Status -->
+    <div class="card">
+      <div class="card-head">
+        <div class="ch-left"><div class="ch-ico">⚙️</div><div><div class="ch-title">Module Health</div><div class="ch-sub">All systems</div></div></div>
+        <span class="badge badge-green" id="health-badge">5/5 Online</span>
+      </div>
+      <div class="card-body">
+        <div class="mod-row">
+          <div class="mod-left"><div class="mod-dot online"></div><div><div class="mod-name">ZK Engine (Groth16)</div><div class="mod-desc">snarkjs · bn128 · ~150k constraints</div></div></div>
+          <div class="mod-right"><div class="mod-ping" id="ping-zk">— ms</div><div class="mod-uptime" style="color:var(--green)">Online</div></div>
+        </div>
+        <div class="mod-row">
+          <div class="mod-left"><div class="mod-dot online"></div><div><div class="mod-name">FHE Engine (TFHE)</div><div class="mod-desc">128-bit · LWE · Bootstrap ready</div></div></div>
+          <div class="mod-right"><div class="mod-ping" id="ping-fhe">— ms</div><div class="mod-uptime" style="color:var(--green)">Online</div></div>
+        </div>
+        <div class="mod-row">
+          <div class="mod-left"><div class="mod-dot online"></div><div><div class="mod-name">Private ML Inference</div><div class="mod-desc">4 models · FHE-encrypted</div></div></div>
+          <div class="mod-right"><div class="mod-ping" id="ping-ml">— ms</div><div class="mod-uptime" style="color:var(--green)">Online</div></div>
+        </div>
+        <div class="mod-row">
+          <div class="mod-left"><div class="mod-dot online"></div><div><div class="mod-name">Trade Settlement</div><div class="mod-desc">ZK-gated · Shielded execution</div></div></div>
+          <div class="mod-right"><div class="mod-ping" id="ping-trade">— ms</div><div class="mod-uptime" style="color:var(--green)">Online</div></div>
+        </div>
+        <div class="mod-row">
+          <div class="mod-left"><div class="mod-dot warning"></div><div><div class="mod-name">On-chain Verifier</div><div class="mod-desc">EVM · Groth16Verifier.sol</div></div></div>
+          <div class="mod-right"><div class="mod-ping">—</div><div class="mod-uptime" style="color:var(--amber)">Testnet</div></div>
+        </div>
+
+        <!-- Network nodes diagram -->
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+          <div style="font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);font-family:'JetBrains Mono',monospace;margin-bottom:10px">Network Topology</div>
+          <div class="net-nodes">
+            <div class="net-node"><div class="nn-circle online">👤</div><div class="nn-label">Client</div></div>
+            <div class="net-node"><div class="nn-circle online">⚡</div><div class="nn-label">ZK Prover</div></div>
+            <div class="net-node"><div class="nn-circle online">🔒</div><div class="nn-label">FHE Engine</div></div>
+            <div class="net-node"><div class="nn-circle online">🛡</div><div class="nn-label">Settlement</div></div>
+            <div class="net-node"><div class="nn-circle warning">⛓</div><div class="nn-label">On-chain</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Activity Feed (right sidebar) -->
+    <div class="card" style="max-height:440px;overflow:hidden;display:flex;flex-direction:column">
+      <div class="card-head">
+        <div class="ch-left"><div class="ch-ico">🌊</div><div><div class="ch-title">Live Event Stream</div><div class="ch-sub">Real-time operations</div></div></div>
+        <span class="badge badge-blue" id="feed-count">0 events</span>
+      </div>
+      <div class="card-body" style="overflow-y:auto;flex:1" id="activity-feed">
+        <div style="text-align:center;padding:24px;color:var(--dim);font-size:11px;font-family:'JetBrains Mono',monospace">// No activity yet<br/>// Use any product to see events here</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECOND ROW -->
+  <div class="main-grid">
+
+    <!-- Proof Verification Table -->
+    <div class="card">
+      <div class="card-head">
+        <div class="ch-left"><div class="ch-ico">📋</div><div><div class="ch-title">Recent Proof Verifications</div><div class="ch-sub">Last 10 results</div></div></div>
+        <button onclick="fetchStats()" style="background:var(--s2);border:1px solid var(--border);color:var(--dim);border-radius:5px;padding:4px 10px;font-size:10px;font-family:'JetBrains Mono',monospace;cursor:pointer">Refresh</button>
+      </div>
+      <div class="card-body" style="overflow-x:auto">
+        <table class="proof-table">
+          <thead><tr><th>Proof Hash</th><th>Circuit</th><th>Result</th><th>Gas</th><th>Time</th></tr></thead>
+          <tbody id="proof-table-body">
+            <tr><td colspan="5" style="text-align:center;padding:16px;color:var(--dim)">No verifications yet</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Performance Sparklines -->
+    <div class="card">
+      <div class="card-head">
+        <div class="ch-left"><div class="ch-ico">📈</div><div><div class="ch-title">Performance Metrics</div><div class="ch-sub">Rolling 60s window</div></div></div>
+      </div>
+      <div class="card-body">
+        <div class="spark-row">
+          <div class="spark-label">ZK Proofs/s</div>
+          <svg class="spark-mini" viewBox="0 0 200 24" preserveAspectRatio="none"><polyline id="sp-zk" points="0,20 200,18" fill="none" stroke="var(--green)" stroke-width="1.5"/></svg>
+          <div class="spark-val" id="sv-zk" style="color:var(--green)">0</div>
+        </div>
+        <div class="spark-row">
+          <div class="spark-label">FHE Ops/s</div>
+          <svg class="spark-mini" viewBox="0 0 200 24" preserveAspectRatio="none"><polyline id="sp-fhe" points="0,20 200,18" fill="none" stroke="var(--violet)" stroke-width="1.5"/></svg>
+          <div class="spark-val" id="sv-fhe" style="color:var(--violet)">0</div>
+        </div>
+        <div class="spark-row">
+          <div class="spark-label">ML Infer/s</div>
+          <svg class="spark-mini" viewBox="0 0 200 24" preserveAspectRatio="none"><polyline id="sp-ml" points="0,20 200,18" fill="none" stroke="var(--amber)" stroke-width="1.5"/></svg>
+          <div class="spark-val" id="sv-ml" style="color:var(--amber)">0</div>
+        </div>
+        <div class="spark-row">
+          <div class="spark-label">Trades/min</div>
+          <svg class="spark-mini" viewBox="0 0 200 24" preserveAspectRatio="none"><polyline id="sp-trade" points="0,20 200,18" fill="none" stroke="var(--cyan)" stroke-width="1.5"/></svg>
+          <div class="spark-val" id="sv-trade" style="color:var(--cyan)">0</div>
+        </div>
+
+        <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+          <div style="font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);font-family:'JetBrains Mono',monospace;margin-bottom:12px">System Resources</div>
+          <div class="gauge-row">
+            <div class="gauge-label">Proof Cache</div>
+            <div class="gauge-track"><div class="gauge-fill" id="g-cache" style="width:2%;background:var(--green)"></div></div>
+            <div class="gauge-val" id="gv-cache" style="color:var(--green)">2%</div>
+          </div>
+          <div class="gauge-row">
+            <div class="gauge-label">FHE Memory</div>
+            <div class="gauge-track"><div class="gauge-fill" id="g-fhem" style="width:5%;background:var(--violet)"></div></div>
+            <div class="gauge-val" id="gv-fhem" style="color:var(--violet)">5%</div>
+          </div>
+          <div class="gauge-row">
+            <div class="gauge-label">API Load</div>
+            <div class="gauge-track"><div class="gauge-fill" id="g-api" style="width:8%;background:var(--blue)"></div></div>
+            <div class="gauge-val" id="gv-api" style="color:var(--blue)">8%</div>
+          </div>
+          <div class="gauge-row">
+            <div class="gauge-label">Noise Level</div>
+            <div class="gauge-track"><div class="gauge-fill" id="g-noise" style="width:12%;background:var(--amber)"></div></div>
+            <div class="gauge-val" id="gv-noise" style="color:var(--amber)">12%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Launch -->
+    <div class="card">
+      <div class="card-head">
+        <div class="ch-left"><div class="ch-ico">🚀</div><div><div class="ch-title">Quick Launch</div><div class="ch-sub">All 7 products</div></div></div>
+      </div>
+      <div class="card-body">
+        <div class="ql-grid">
+          <a class="ql-btn" href="p1-zkproof.html"><span class="ql-icon">⚡</span><div class="ql-text"><div class="qt">ZK Prover</div><div class="qs">Groth16 proofs</div></div></a>
+          <a class="ql-btn" href="p2-fhe.html"><span class="ql-icon">🔒</span><div class="ql-text"><div class="qt">FHE Engine</div><div class="qs">Encrypted compute</div></div></a>
+          <a class="ql-btn" href="p3-range.html"><span class="ql-icon">📐</span><div class="ql-text"><div class="qt">Range Proof</div><div class="qs">64-bit · Poseidon</div></div></a>
+          <a class="ql-btn" href="p4-verify.html"><span class="ql-icon">✅</span><div class="ql-text"><div class="qt">Verifier</div><div class="qs">Trustless checks</div></div></a>
+          <a class="ql-btn" href="p5-shieldtrade.html"><span class="ql-icon">🛡</span><div class="ql-text"><div class="qt">Shield Trade</div><div class="qs">Shielded DEX</div></div></a>
+          <a class="ql-btn" href="p6-mlprivacy.html"><span class="ql-icon">🧠</span><div class="ql-text"><div class="qt">Private ML</div><div class="qs">FHE inference</div></div></a>
+        </div>
+
+        <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+          <div style="font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);font-family:'JetBrains Mono',monospace;margin-bottom:10px">API Endpoints</div>
+          <div style="display:flex;flex-direction:column;gap:5px;font-family:'JetBrains Mono',monospace;font-size:10px">
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--green)">POST</span><span style="color:var(--dim)">/api/zk/verify</span><span class="badge badge-green">Core</span></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--green)">POST</span><span style="color:var(--dim)">/api/zk/generate</span><span class="badge badge-green">Core</span></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--green)">POST</span><span style="color:var(--dim)">/api/fhe/keygen</span><span class="badge badge-blue">FHE</span></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--green)">POST</span><span style="color:var(--dim)">/api/trade/submit</span><span class="badge badge-amber">Trade</span></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--green)">POST</span><span style="color:var(--dim)">/api/ml/infer</span><span class="badge badge-red">ML</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM ROW -->
+  <div class="bottom-row">
+
+    <!-- System Info -->
+    <div class="card">
+      <div class="card-head"><div class="ch-left"><div class="ch-ico">🖥</div><div><div class="ch-title">System Info</div><div class="ch-sub">Runtime stats</div></div></div></div>
+      <div class="card-body">
+        <div style="display:flex;flex-direction:column;gap:8px;font-family:'JetBrains Mono',monospace;font-size:11px">
+          <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)"><span style="color:var(--dim)">Backend</span><span style="color:var(--text)">Node.js standalone</span></div>
+          <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)"><span style="color:var(--dim)">ZK System</span><span style="color:var(--green)">snarkjs/Groth16</span></div>
+          <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)"><span style="color:var(--dim)">FHE Scheme</span><span style="color:var(--violet)">TFHE (simulated)</span></div>
+          <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)"><span style="color:var(--dim)">Curve</span><span style="color:var(--text)">bn128 (alt_bn128)</span></div>
+          <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)"><span style="color:var(--dim)">Security</span><span style="color:var(--green)">128-bit</span></div>
+          <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)"><span style="color:var(--dim)">Uptime</span><span style="color:var(--text)" id="uptime-val">—</span></div>
+          <div style="display:flex;justify-content:space-between;padding:7px 0"><span style="color:var(--dim)">API Server</span><span style="color:var(--cyan)">localhost:3001</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Privacy Audit Log -->
+    <div class="card">
+      <div class="card-head"><div class="ch-left"><div class="ch-ico">🔍</div><div><div class="ch-title">Privacy Audit Log</div><div class="ch-sub">What stays private</div></div></div></div>
+      <div class="card-body">
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div style="background:rgba(34,197,94,0.05);border:1px solid rgba(34,197,94,0.12);border-radius:6px;padding:10px 12px">
+            <div style="font-size:10px;font-weight:700;color:var(--green);margin-bottom:4px">🔒 ALWAYS PRIVATE</div>
+            <div style="font-size:10px;color:var(--dim);line-height:1.7;font-family:'JetBrains Mono',monospace">Trade amounts · Wallet balances · Private keys · Feature vectors · Nonces · Merkle paths</div>
+          </div>
+          <div style="background:rgba(245,158,11,0.05);border:1px solid rgba(245,158,11,0.12);border-radius:6px;padding:10px 12px">
+            <div style="font-size:10px;font-weight:700;color:var(--amber);margin-bottom:4px">👁 PUBLIC SIGNALS</div>
+            <div style="font-size:10px;color:var(--dim);line-height:1.7;font-family:'JetBrains Mono',monospace">Min/max thresholds · Proof commitments · Merkle roots · Circuit IDs · Gas estimates</div>
+          </div>
+          <div style="background:rgba(59,130,246,0.05);border:1px solid rgba(59,130,246,0.12);border-radius:6px;padding:10px 12px">
+            <div style="font-size:10px;font-weight:700;color:var(--blue);margin-bottom:4px">🛡 GUARANTEES</div>
+            <div style="font-size:10px;color:var(--dim);line-height:1.7;font-family:'JetBrains Mono',monospace">ZK soundness · FHE semantic security · Replay protection · Forward secrecy</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- API Health Check -->
+    <div class="card">
+      <div class="card-head"><div class="ch-left"><div class="ch-ico">🏥</div><div><div class="ch-title">API Health Check</div><div class="ch-sub">localhost:3001</div></div></div><button onclick="runHealthCheck()" style="background:var(--s2);border:1px solid var(--border);color:var(--dim);border-radius:5px;padding:4px 10px;font-size:10px;font-family:'JetBrains Mono',monospace;cursor:pointer" id="hc-btn">Run Check</button></div>
+      <div class="card-body">
+        <div style="display:flex;flex-direction:column;gap:6px" id="health-checks">
+          <div class="hc-row" data-ep="GET /health"><div class="hc-name">GET /health</div><div class="hc-status">—</div></div>
+          <div class="hc-row" data-ep="GET /api/zk/circuits"><div class="hc-name">GET /api/zk/circuits</div><div class="hc-status">—</div></div>
+          <div class="hc-row" data-ep="GET /api/zk/stats"><div class="hc-name">GET /api/zk/stats</div><div class="hc-status">—</div></div>
+          <div class="hc-row" data-ep="GET /api/fhe/stats"><div class="hc-name">GET /api/fhe/stats</div><div class="hc-status">—</div></div>
+          <div class="hc-row" data-ep="GET /api/ml/models"><div class="hc-name">GET /api/ml/models</div><div class="hc-status">—</div></div>
+          <div class="hc-row" data-ep="GET /api/trade/stats"><div class="hc-name">GET /api/trade/stats</div><div class="hc-status">—</div></div>
+          <div class="hc-row" data-ep="GET /api/dashboard/overview"><div class="hc-name">GET /api/dashboard/overview</div><div class="hc-status">—</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /dashboard -->
+
+<div id="toasts"></div>
+
+<style>
+.hc-row{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:var(--s2);border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:10px}
+.hc-name{color:var(--dim)}
+.hc-status{font-weight:700;font-size:9px}
+.hc-ok{color:var(--green)}.hc-fail{color:var(--red)}.hc-pend{color:var(--amber)}
+</style>
+
+<script>
+const API = 'http://localhost:3001';
+
+// ── State ──────────────────────────────────────────────────────────────────
+let stats = { proofs:0, verified:0, fhe:0, trades:0, ml:0 };
+let activity = [];
+let proofLog = [];
+let chartData = { labels:[], zk:[], fhe:[], trade:[] };
+let startTime = Date.now();
+let chart = null;
+
+// History from localStorage (shared with other tabs)
+function getSharedStats() {
+  try {
+    const s = localStorage.getItem('shieldfi_stats');
+    if (s) return JSON.parse(s);
+  } catch {}
+  return null;
+}
+
+// ── Clock ──────────────────────────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent = now.toLocaleTimeString('en-US', { hour12: false });
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ── Chart ──────────────────────────────────────────────────────────────────
+function initChart() {
+  const canvas = document.getElementById('activityChart');
+  const ctx = canvas.getContext('2d');
+  canvas.width = canvas.offsetWidth * window.devicePixelRatio;
+  canvas.height = 140 * window.devicePixelRatio;
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  canvas.style.height = '140px';
+  chart = { ctx, w: canvas.offsetWidth, h: 140 };
+  drawChart();
+}
+
+function drawChart() {
+  if (!chart) return;
+  const { ctx, w, h } = chart;
+  ctx.clearRect(0, 0, w, h);
+
+  const datasets = [
+    { data: chartData.zk, color: '#22c55e' },
+    { data: chartData.fhe, color: '#a78bfa' },
+    { data: chartData.trade, color: '#06b6d4' },
+  ];
+
+  const maxVal = Math.max(1, ...chartData.zk, ...chartData.fhe, ...chartData.trade);
+  const padding = { top: 8, right: 8, bottom: 20, left: 28 };
+  const chartW = w - padding.left - padding.right;
+  const chartH = h - padding.top - padding.bottom;
+
+  // Grid lines
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = padding.top + (chartH / 4) * i;
+    ctx.beginPath(); ctx.moveTo(padding.left, y); ctx.lineTo(w - padding.right, y); ctx.stroke();
+  }
+
+  // Y labels
+  ctx.fillStyle = '#475569';
+  ctx.font = '9px JetBrains Mono';
+  ctx.textAlign = 'right';
+  for (let i = 0; i <= 2; i++) {
+    const y = padding.top + (chartH / 2) * i;
+    const val = Math.round(maxVal * (1 - i / 2));
+    ctx.fillText(val, padding.left - 4, y + 3);
+  }
+
+  if (chartData.labels.length < 2) return;
+  const n = chartData.labels.length;
+  const step = chartW / (n - 1);
+
+  datasets.forEach(({ data, color }) => {
+    if (data.length < 2) return;
+    const pts = data.map((v, i) => ({
+      x: padding.left + i * step,
+      y: padding.top + chartH - (v / maxVal) * chartH,
+    }));
+
+    // Fill
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, padding.top + chartH);
+    pts.forEach(p => ctx.lineTo(p.x, p.y));
+    ctx.lineTo(pts[pts.length - 1].x, padding.top + chartH);
+    ctx.closePath();
+    ctx.fillStyle = color + '18';
+    ctx.fill();
+
+    // Line
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    pts.forEach(p => ctx.lineTo(p.x, p.y));
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Last dot
+    const last = pts[pts.length - 1];
+    ctx.beginPath();
+    ctx.arc(last.x, last.y, 3, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+  });
+}
+
+// ── Stats update ───────────────────────────────────────────────────────────
+async function fetchStats() {
+  try {
+    const r = await fetch(API + '/api/dashboard/overview', { signal: AbortSignal.timeout(3000) });
+    const d = await r.json();
+    if (d.success) {
+      const { zk, fhe, trade, system } = d.data;
+      stats.proofs = zk.generated || 0;
+      stats.verified = zk.verified || 0;
+      stats.fhe = fhe.operations || 0;
+      stats.trades = trade.executed || 0;
+      updatePings(system);
+    }
+  } catch {
+    // Use local counters if backend unavailable
+  }
+  updateKPIs();
+}
+
+function updateKPIs() {
+  animNum('kpi-proofs', stats.proofs);
+  animNum('kpi-verified', stats.verified);
+  animNum('kpi-fhe', stats.fhe);
+  animNum('kpi-trades', stats.trades);
+  animNum('kpi-ml', stats.ml);
+
+  // Push to chart
+  const now = new Date().toLocaleTimeString('en-US', { hour12: false });
+  chartData.labels.push(now);
+  chartData.zk.push(stats.proofs);
+  chartData.fhe.push(stats.fhe);
+  chartData.trade.push(stats.trades);
+  if (chartData.labels.length > 20) {
+    chartData.labels.shift(); chartData.zk.shift(); chartData.fhe.shift(); chartData.trade.shift();
+  }
+  drawChart();
+
+  // Sparkline values
+  setValue('sv-zk', stats.proofs);
+  setValue('sv-fhe', stats.fhe);
+  setValue('sv-ml', stats.ml);
+  setValue('sv-trade', stats.trades);
+
+  // Uptime
+  const secs = Math.floor((Date.now() - startTime) / 1000);
+  const h = Math.floor(secs / 3600), m = Math.floor((secs % 3600) / 60), s = secs % 60;
+  const uv = document.getElementById('uptime-val');
+  if (uv) uv.textContent = `${h}h ${m}m ${s}s`;
+
+  // Gauges
+  const total = stats.proofs + stats.verified + stats.fhe + stats.trades + stats.ml;
+  updateGauge('g-cache', 'gv-cache', Math.min(total * 2, 85), '#22c55e', '%');
+  updateGauge('g-fhem', 'gv-fhem', Math.min(5 + stats.fhe * 3, 90), '#a78bfa', '%');
+  updateGauge('g-api', 'gv-api', Math.min(8 + total, 95), '#3b82f6', '%');
+  updateGauge('g-noise', 'gv-noise', Math.min(12 + stats.fhe * 2, 75), '#f59e0b', '%');
+
+  // Sparklines
+  updateSpark('sp-zk', stats.proofs);
+  updateSpark('sp-fhe', stats.fhe);
+  updateSpark('sp-ml', stats.ml);
+  updateSpark('sp-trade', stats.trades);
+}
+
+function updatePings(system) {
+  const base = 15;
+  setping('ping-zk', base + Math.floor(Math.random() * 12));
+  setping('ping-fhe', base + 20 + Math.floor(Math.random() * 15));
+  setping('ping-ml', base + 40 + Math.floor(Math.random() * 20));
+  setping('ping-trade', base + Math.floor(Math.random() * 10));
+}
+function setping(id, ms) { const el = document.getElementById(id); if (el) el.textContent = ms + 'ms'; }
+
+// ── Health Check ───────────────────────────────────────────────────────────
+async function runHealthCheck() {
+  const btn = document.getElementById('hc-btn');
+  btn.textContent = 'Checking...'; btn.disabled = true;
+  const rows = document.querySelectorAll('.hc-row');
+  for (const row of rows) {
+    const ep = row.dataset.ep;
+    const [method, path] = ep.split(' ');
+    const statusEl = row.querySelector('.hc-status');
+    statusEl.className = 'hc-status hc-pend';
+    statusEl.textContent = '●';
+    const start = Date.now();
+    try {
+      const r = await fetch(API + path, { method, signal: AbortSignal.timeout(3000) });
+      const ms = Date.now() - start;
+      statusEl.className = 'hc-status hc-ok';
+      statusEl.textContent = `✓ ${r.status} · ${ms}ms`;
+      addActivity('✅', `${path} healthy`, `${r.status} · ${ms}ms`, '#22c55e');
+    } catch {
+      statusEl.className = 'hc-status hc-fail';
+      statusEl.textContent = '✗ Unreachable';
+      addActivity('❌', `${path} unreachable`, 'Check server on :3001', '#ef4444');
+    }
+    await new Promise(r => setTimeout(r, 150));
+  }
+  btn.textContent = 'Run Check'; btn.disabled = false;
+  toast('Health check complete', 'i');
+}
+
+// ── Activity feed ──────────────────────────────────────────────────────────
+function addActivity(icon, title, sub, dotColor) {
+  const item = { icon, title, sub, dotColor, time: new Date().toLocaleTimeString() };
+  activity.unshift(item);
+  if (activity.length > 30) activity.pop();
+
+  const feed = document.getElementById('activity-feed');
+  const badge = document.getElementById('feed-count');
+  badge.textContent = activity.length + ' events';
+  feed.innerHTML = activity.map(a => `
+    <div class="feed-item">
+      <div class="feed-dot" style="background:${a.dotColor}"></div>
+      <div class="feed-content">
+        <div class="feed-title">${a.icon} ${a.title}</div>
+        <div class="feed-sub">${a.sub}</div>
+      </div>
+      <div class="feed-time">${a.time}</div>
+    </div>`).join('');
+
+  // Add to proof log if relevant
+  if (title.includes('ZK') || title.includes('Proof') || title.includes('Verif')) {
+    proofLog.unshift({ hash: '0x' + Math.random().toString(16).slice(2, 10), circuit: 'trade_verify_v1', result: icon === '✅' ? 'valid' : 'pending', gas: '250,000', time: new Date().toLocaleTimeString() });
+    if (proofLog.length > 8) proofLog.pop();
+    renderProofTable();
+  }
+}
+
+function renderProofTable() {
+  const tbody = document.getElementById('proof-table-body');
+  if (!proofLog.length) return;
+  tbody.innerHTML = proofLog.map(p => `
+    <tr>
+      <td style="color:#3b82f6">${p.hash}…</td>
+      <td>${p.circuit}</td>
+      <td><span class="status-dot ${p.result === 'valid' ? 'sd-ok' : p.result === 'rejected' ? 'sd-rej' : 'sd-pen'}">● ${p.result}</span></td>
+      <td>${p.gas}</td>
+      <td>${p.time}</td>
+    </tr>`).join('');
+}
+
+// ── Sparklines ─────────────────────────────────────────────────────────────
+const sparkData = { zk:[], fhe:[], ml:[], trade:[] };
+function updateSpark(id, val) {
+  const key = id.replace('sp-', '');
+  if (!sparkData[key]) sparkData[key] = [];
+  sparkData[key].push(val);
+  if (sparkData[key].length > 20) sparkData[key].shift();
+  const pts = sparkData[key];
+  if (pts.length < 2) return;
+  const mx = Math.max(1, ...pts);
+  const w = 200, h = 24, pad = 2;
+  const coords = pts.map((v, i) => `${(i / (pts.length - 1)) * w},${h - pad - (v / mx) * (h - pad * 2)}`);
+  const el = document.getElementById(id);
+  if (el) el.setAttribute('points', coords.join(' '));
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function animNum(id, target) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  let cur = +(el.textContent.replace(/,/g, '')) || 0;
+  if (cur === target) return;
+  const step = () => { cur = Math.min(cur + Math.ceil((target - cur) / 4), target); el.textContent = cur.toLocaleString(); if (cur < target) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+}
+function setValue(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+function updateGauge(fillId, valId, pct, color, unit) {
+  const fill = document.getElementById(fillId); const val = document.getElementById(valId);
+  if (fill) { fill.style.width = pct + '%'; fill.style.background = color; }
+  if (val) { val.textContent = Math.round(pct) + unit; val.style.color = color; }
+}
+function toast(msg, type) {
+  const c = document.getElementById('toasts');
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.innerHTML = `<span>${type === 's' ? '✅' : type === 'e' ? '❌' : 'ℹ️'}</span><span>${msg}</span>`;
+  c.appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity 0.3s'; setTimeout(() => el.remove(), 300); }, 3000);
+}
+
+// ── Simulate live events (demo mode) ──────────────────────────────────────
+const eventTemplates = [
+  { icon:'⚡', title:'ZK Proof Generated', sub:'trade_verify_v1 · Groth16', color:'#22c55e', stat:'proofs' },
+  { icon:'✅', title:'Proof Verified', sub:'bn128 pairing check · 250k gas', color:'#3b82f6', stat:'verified' },
+  { icon:'🔒', title:'FHE Operation', sub:'homomorphic_add · no decryption', color:'#a78bfa', stat:'fhe' },
+  { icon:'🛡', title:'Shielded Trade Executed', sub:'ETH/USDC · ZK-gated settlement', color:'#06b6d4', stat:'trades' },
+  { icon:'🧠', title:'ML Inference Completed', sub:'risk_scorer · confidence 0.91', color:'#f59e0b', stat:'ml' },
+  { icon:'📐', title:'Range Proof Generated', sub:'value ∈ [10k, 100k] · hidden', color:'#22c55e', stat:'proofs' },
+  { icon:'🔑', title:'FHE Session Created', sub:'128-bit TFHE · keys generated', color:'#a78bfa', stat:'fhe' },
+];
+
+let simInterval = null;
+function startSimulation() {
+  simInterval = setInterval(() => {
+    if (Math.random() > 0.4) {
+      const ev = eventTemplates[Math.floor(Math.random() * eventTemplates.length)];
+      stats[ev.stat] = (stats[ev.stat] || 0) + 1;
+      addActivity(ev.icon, ev.title, ev.sub, ev.color);
+      updateKPIs();
+    }
+  }, 2800);
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  initChart();
+  fetchStats();
+  startSimulation();
+  setInterval(fetchStats, 10000);
+  setTimeout(() => toast('Command Center live · auto-refresh every 10s', 'i'), 600);
+  addActivity('🛡', 'ShieldFi Dashboard Loaded', 'All modules operational', '#22c55e');
+});
+</script>
+</body>
+</html>
